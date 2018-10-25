@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="vertical">
+    <com.xiangri.dongdong.view.TopView
+        android:id="@+id/topview"
+        android:layout_height="50dp"
+        android:layout_width="match_parent"
+        app:title="商品"></com.xiangri.dongdong.view.TopView>
+    <LinearLayout
+        android:orientation="horizontal"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <android.support.v7.widget.RecyclerView
+            android:id="@+id/left"
+            android:layout_width="100dp"
+            android:layout_height="match_parent"></android.support.v7.widget.RecyclerView>
+        <View
+            android:layout_width="3dp"
+            android:layout_marginLeft="1dp"
+            android:layout_height="match_parent"
+            android:background="@color/colorPrimary">
+        </View>
+        <ListView
+            android:id="@+id/right"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"></ListView>
+
+    </LinearLayout>
+
+</LinearLayout>

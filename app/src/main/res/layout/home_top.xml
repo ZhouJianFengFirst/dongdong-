@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:background="@color/colorPrimary"
+    android:layout_height="match_parent">
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="40dp"
+        android:background="@color/colorPrimary"
+        >
+        <de.hdodenhof.circleimageview.CircleImageView
+            android:id="@+id/scan"
+            android:layout_width="30dp"
+            android:layout_height="30dp"
+            android:layout_alignParentLeft="true"
+            android:layout_centerVertical="true"
+            android:layout_marginLeft="10dp"
+            android:layout_marginRight="10dp"
+            android:background="@drawable/solid"
+            android:src="@drawable/scan_w" />
+
+        <TextView
+            android:id="@+id/et_sou"
+            android:layout_width="match_parent"
+            android:layout_height="30dp"
+            android:layout_centerVertical="true"
+            android:layout_toLeftOf="@id/message"
+            android:layout_toRightOf="@id/scan"
+            android:background="@drawable/et_solid_bg"
+            android:gravity="center_vertical"
+            android:paddingLeft="10dp"
+            android:text="请输入信息"
+            android:textColor="@color/colore999999" />
+
+        <de.hdodenhof.circleimageview.CircleImageView
+            android:id="@+id/message"
+            android:layout_width="30dp"
+            android:layout_height="30dp"
+            android:layout_alignParentRight="true"
+            android:layout_centerVertical="true"
+            android:layout_marginLeft="10dp"
+            android:layout_marginRight="10dp"
+            android:background="@drawable/solid"
+            android:src="@drawable/home_message" />
+    </RelativeLayout>
+</RelativeLayout>
