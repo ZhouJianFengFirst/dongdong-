@@ -1,11 +1,16 @@
 package com.xiangri.dongdong.perstener;
 
 import android.content.Context;
+import android.content.Intent;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.view.View;
+import android.widget.ImageView;
 import android.widget.RelativeLayout;
 
+import com.xiangri.dongdong.MainActivity;
 import com.xiangri.dongdong.R;
+import com.xiangri.dongdong.activity.LoginActivity;
 import com.xiangri.dongdong.adapters.MeListAdapter;
 import com.xiangri.dongdong.entity.MeListBean;
 import com.xiangri.dongdong.mvp.view.AppDelegate;
@@ -14,12 +19,13 @@ import com.xiangri.dongdong.view.WaterView;
 import java.util.ArrayList;
 import java.util.List;
 
-public class FragmentMePersenter extends AppDelegate {
+public class FragmentMePersenter extends AppDelegate implements View.OnClickListener{
 
     private Context mContext;
     private WaterView water;
     private RecyclerView list;
     private List<MeListBean> names = new ArrayList<>();
+    private ImageView userImage;
 
     @Override
     protected int getLayoutId() {
@@ -51,7 +57,6 @@ public class FragmentMePersenter extends AppDelegate {
         LinearLayoutManager layoutManager = new LinearLayoutManager(mContext);
         layoutManager.setOrientation(LinearLayoutManager.VERTICAL);
         list.setLayoutManager(layoutManager);
-
         MeListAdapter meListAdapter = new MeListAdapter(mContext, names);
         list.setAdapter(meListAdapter);
     }
@@ -59,6 +64,8 @@ public class FragmentMePersenter extends AppDelegate {
     private void setEvent() {
        water =  (WaterView)getView(R.id.water);
        list = (RecyclerView)getView(R.id.show_me_list);
+
+       //水波纹设置监听
        water.setLisener(new WaterView.AnimalLisener() {
                 @Override
             public void getHeight(int y) {
@@ -67,5 +74,16 @@ public class FragmentMePersenter extends AppDelegate {
                 list.setLayoutParams(layoutParams);
             }
         });
+        userImage = (ImageView) getView(R.id.userimage);
+        userImage.setOnClickListener(this);
+    }
+
+    @Override
+    public void onClick(View v) {
+        switch (v.getId()){
+            case R.id.userimage:
+                ((MainActivity)mContext).startActivity(new Intent(mContext, LoginActivity.class));
+                break;
+        }
     }
 }
