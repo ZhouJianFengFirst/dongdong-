@@ -11,7 +11,7 @@ import android.view.ViewGroup;
 import com.xiangri.dongdong.mvp.view.AppDelegate;
 
 public abstract class BaseFragment<T extends AppDelegate> extends Fragment {
-    private T delegate;
+    public T delegate;
 
     public abstract Class<T> getDelegateClass();
 

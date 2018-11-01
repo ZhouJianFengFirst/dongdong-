@@ -7,6 +7,7 @@ import android.support.v7.widget.RecyclerView;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
+import android.widget.TextView;
 
 import com.xiangri.dongdong.MainActivity;
 import com.xiangri.dongdong.R;
@@ -26,6 +27,7 @@ public class FragmentMePersenter extends AppDelegate implements View.OnClickList
     private RecyclerView list;
     private List<MeListBean> names = new ArrayList<>();
     private ImageView userImage;
+    private TextView showUser;
 
     @Override
     protected int getLayoutId() {
@@ -64,7 +66,7 @@ public class FragmentMePersenter extends AppDelegate implements View.OnClickList
     private void setEvent() {
        water =  (WaterView)getView(R.id.water);
        list = (RecyclerView)getView(R.id.show_me_list);
-
+         showUser= (TextView) getView(R.id.show_user);
        //水波纹设置监听
        water.setLisener(new WaterView.AnimalLisener() {
                 @Override
@@ -85,5 +87,9 @@ public class FragmentMePersenter extends AppDelegate implements View.OnClickList
                 ((MainActivity)mContext).startActivity(new Intent(mContext, LoginActivity.class));
                 break;
         }
+    }
+
+    public void setUserMessage(String username) {
+        showUser.setText(username);
     }
 }

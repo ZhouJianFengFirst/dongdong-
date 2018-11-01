@@ -1,5 +1,5 @@
 package com.xiangri.dongdong.entity;
-public    class UserBean   {
+public  class UserBean   {
 
     /**
      * msg : 登录成功

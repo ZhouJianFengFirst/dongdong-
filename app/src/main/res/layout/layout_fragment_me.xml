@@ -12,10 +12,12 @@
             android:id="@+id/userimage"
             android:layout_width="100dp"
             android:layout_height="90dp"
+            android:scaleType="centerCrop"
             android:layout_centerInParent="true"
-            android:src="@mipmap/handimage" />
+            android:src="@drawable/login" />
 
         <TextView
+            android:id="@+id/show_user"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_below="@id/userimage"

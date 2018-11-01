@@ -1,6 +1,7 @@
 package com.xiangri.dongdong.perstener;
 
 import android.content.Context;
+import android.content.Intent;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
@@ -9,9 +10,15 @@ import android.widget.EditText;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
+import com.google.gson.Gson;
+import com.xiangri.dongdong.MainActivity;
 import com.xiangri.dongdong.R;
+import com.xiangri.dongdong.activity.LoginActivity;
+import com.xiangri.dongdong.activity.RegisterActivity;
+import com.xiangri.dongdong.entity.UserBean;
 import com.xiangri.dongdong.mvp.view.AppDelegate;
 import com.xiangri.dongdong.net.Http;
+import com.xiangri.dongdong.utils.SpUtil;
 
 import java.io.IOException;
 
@@ -33,11 +40,8 @@ public class LoginActivityPerstener extends AppDelegate implements View.OnClickL
     @Override
     public void initData() {
         super.initData();
-
         //设置事件
         setEvent();
-
-
     }
 
     private void setEvent() {
@@ -71,6 +75,7 @@ public class LoginActivityPerstener extends AppDelegate implements View.OnClickL
                 userLogin(username, userpass);
                 break;
             case R.id.new_user_recest:
+                ((LoginActivity)mContext).startActivity(new Intent(mContext,RegisterActivity.class));
                 break;
             case R.id.user_find_password:
                 break;
@@ -79,7 +84,7 @@ public class LoginActivityPerstener extends AppDelegate implements View.OnClickL
 
     private void userLogin(String username, String userpass) {
         if (TextUtils.isEmpty(username) || TextUtils.isEmpty(userpass)) {
-            toast("用户名密码不能为空");
+            toast("用户友情提示：","用户名密码不能为空",4000);
             return;
         }
         RequestBody body = new FormBody.Builder().add("mobile",username).add("password",userpass).build();
@@ -91,13 +96,25 @@ public class LoginActivityPerstener extends AppDelegate implements View.OnClickL
         super.successString(data, type);
         switch (type){
             case USER_LOGIN:
-                Log.d("Tag",data+">>>");
+                saveUserMessage(data);
                 break;
         }
     }
 
+    private void saveUserMessage(String data) {
+        Gson gson = new Gson();
+        UserBean userBean = gson.fromJson(data, UserBean.class);
+        if ("0".equals(userBean.getCode())){
+            SpUtil.getInserter(mContext).saveData("username",userBean.getData().getUsername()).putString("uid",userBean.getData().getUid()+"").putString("password",userBean.getData().getPassword()).putBoolean("login_flag",true).putString("token",userBean.getData().getToken()).commit();
+            ((LoginActivity)mContext).finish();
+        }else {
+            toast("用户友情提示：","用户名密码错误",4000);
+        }
+    }
+
     @Override
-    public void failString(String msg) {
-        super.failString(msg);
+        public void failString(String msg) {
+            super.failString(msg);
+        toast("用户友情提示：","请检查网络",4000);
     }
 }

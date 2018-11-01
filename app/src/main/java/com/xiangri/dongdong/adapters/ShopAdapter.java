@@ -1,10 +1,13 @@
 package com.xiangri.dongdong.adapters;
 
 import android.content.Context;
+import android.content.Intent;
 import android.view.View;
 import android.widget.Toast;
 
+import com.xiangri.dongdong.MainActivity;
 import com.xiangri.dongdong.R;
+import com.xiangri.dongdong.activity.ShowShopActivity;
 import com.xiangri.dongdong.entity.ShopBean;
 
 import java.util.List;
@@ -32,7 +35,10 @@ public class ShopAdapter extends RecycleAdapter<ShopBean.DataBean.ListBean> {
         viewHolder.getRootView().setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Toast.makeText(mContext, listBean.getTitle(), Toast.LENGTH_SHORT).show();
+                Intent intent = new Intent(mContext, ShowShopActivity.class);
+                intent.putExtra("pid",listBean.getPid());
+                intent.putExtra("url",listBean.getDetailUrl());
+                ((MainActivity)mContext).startActivity(intent);
             }
         });
     }

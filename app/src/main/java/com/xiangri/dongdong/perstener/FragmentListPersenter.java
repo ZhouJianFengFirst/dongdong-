@@ -39,7 +39,7 @@ public class FragmentListPersenter extends AppDelegate implements LeftRecyAdapte
         //设置左面的列表进行网络请求
         getString(Http.JIU_URL, CONTENT_REQUEST);
 
-        getString(Http.RIGHT_URL+1,RIGHT_REQUEST);
+        getString(Http.RIGHT_URL+"1",RIGHT_REQUEST);
     }
 
     private void setEvent() {
@@ -105,7 +105,6 @@ public class FragmentListPersenter extends AppDelegate implements LeftRecyAdapte
     public void setRightAdapter(String data) {
         Gson gson = new Gson();
         RightShopBean shopBean = gson.fromJson(data, RightShopBean.class);
-        toast(shopBean.getData().size()+">>>>");
         listAdapter.setList(shopBean.getData());
     }
 }

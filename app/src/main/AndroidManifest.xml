@@ -41,6 +41,8 @@
         </service>
         <activity android:name=".activity.MapActivity"></activity>
         <activity android:name=".activity.LoginActivity"></activity>
+        <activity android:name=".activity.RegisterActivity"></activity>
+        <activity android:name=".activity.ShowShopActivity"></activity>
     </application>
 
 </manifest>

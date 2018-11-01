@@ -2,12 +2,16 @@ package com.xiangri.dongdong.mvp.view;
 
 import android.content.Context;
 import android.os.Bundle;
+import android.support.v7.app.AppCompatActivity;
 import android.util.SparseArray;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Toast;
 
+import com.tapadoo.alerter.Alert;
+import com.tapadoo.alerter.Alerter;
+import com.xiangri.dongdong.R;
 import com.xiangri.dongdong.net.HttpHelper;
 import com.xiangri.dongdong.net.HttpRequestListener;
 
@@ -82,6 +86,13 @@ public abstract class AppDelegate implements IDelegate {
 
     public void toast(String msg) {
         Toast.makeText(mContext, msg, Toast.LENGTH_SHORT).show();
+    }
+    public void toast(String title,String msg,int s){
+        Alerter.create(((AppCompatActivity)mContext)).setBackgroundColor(R.color.colorPrimary)
+                .setText(msg)
+                .setTitle(title)
+                .setDuration(s)
+                .show();
     }
 
     public <T extends View> T getView(int viewId) {

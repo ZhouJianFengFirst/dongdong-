@@ -8,7 +8,7 @@ import com.xiangri.dongdong.mvp.view.AppDelegate;
 
 public abstract class BaseActivity<T extends AppDelegate> extends AppCompatActivity {
 
-    private T delegate;
+    public T delegate;
 
     public abstract Class<T> getDelegateClass();
 

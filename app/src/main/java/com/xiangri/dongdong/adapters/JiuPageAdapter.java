@@ -16,7 +16,6 @@ import java.util.List;
 
 public class JiuPageAdapter extends PagerAdapter {
 
-
     private Context mContext;
     private List<JiuBean.DataBean> onePage = new ArrayList<>();
     private List<JiuBean.DataBean> towPage = new ArrayList<>();
@@ -47,10 +46,12 @@ public class JiuPageAdapter extends PagerAdapter {
         RecyclerView recyclerView = (RecyclerView) inflate.findViewById(R.id.jiu_recy);
         GridLayoutManager gridLayoutManager = new GridLayoutManager(mContext, 4);
         recyclerView.setLayoutManager(gridLayoutManager);
+        JiuPageRecyAdapter adapter = new JiuPageRecyAdapter(mContext,onePage);
+        recyclerView.setAdapter(adapter);
         if (position == 0) {
-            setAdapter(recyclerView, onePage);
+            adapter.setList(onePage);
         } else if (position == 1) {
-            setAdapter(recyclerView, towPage);
+            adapter.setList(towPage);
         }
         container.addView(inflate);
         return inflate;
@@ -59,25 +60,5 @@ public class JiuPageAdapter extends PagerAdapter {
     @Override
     public void destroyItem(@NonNull ViewGroup container, int position, @NonNull Object object) {
         container.removeView((View) object);
-    }
-
-    public void setAdapter(RecyclerView recyclerView, List<JiuBean.DataBean> list) {
-        recyclerView.setAdapter(new RecycleAdapter<JiuBean.DataBean>(mContext, list) {
-
-            @Override
-            protected int getLayoutId() {
-                return R.layout.layout_jiu_shopmessage;
-            }
-
-            @Override
-            protected void convert(ViewHolder viewHolder, JiuBean.DataBean dataBean, int postion) {
-                viewHolder.setText(R.id.txt, dataBean.getName()).setImageUrl(R.id.gride_image, dataBean.getIcon());
-            }
-
-            @Override
-            public void convertPrent(ViewHolder viewHolder, List<JiuBean.DataBean> t, int postion) {
-
-            }
-        });
     }
 }

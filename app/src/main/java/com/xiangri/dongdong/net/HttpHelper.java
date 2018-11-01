@@ -44,7 +44,7 @@ public class HttpHelper {
 
     public HttpHelper doPost(String url, RequestBody body) {
         OkHttpClient okHttpClient = new OkHttpClient();
-        Request request = new Request.Builder().post(body).build();
+        Request request = new Request.Builder().post(body).url(url).build();
         doHttp(okHttpClient, request);
         return this;
     }

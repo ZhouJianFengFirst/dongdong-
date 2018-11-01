@@ -126,18 +126,16 @@ public class FragmentHomePersenter extends AppDelegate {
         if (data.contains(">")) {
             return;
         }
-        Log.d("Tag56", data);
         //实例化数据
         Gson gson = new Gson();
         JiuBean jiuBean = gson.fromJson(data, JiuBean.class);
         for (int i = 0; i < jiuBean.getData().size(); i++) {
-            if (i > 8 && i < 17) {
+            if (i >= 8 && i < 16) {
                 towPage.add(jiuBean.getData().get(i));
             } else if (i < 8) {
                 onePage.add(jiuBean.getData().get(i));
             }
         }
-        Log.d("Tag56", onePage.size() + "===" + towPage.size());
         JiuPageAdapter jiuPageAdapter = new JiuPageAdapter(mContext, onePage, towPage, 2);
         viewpage.setAdapter(jiuPageAdapter);
     }
