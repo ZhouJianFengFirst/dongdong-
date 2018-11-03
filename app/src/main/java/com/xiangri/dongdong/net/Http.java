@@ -33,4 +33,5 @@ public class Http {
     public static final String DEL_SHOP_CAR_URL=BASE_URL+"/product/deleteCart";
 
     public static final String RIGHT_URL = BASE_URL+"/product/getProductCatagory?cid=";
+
 }

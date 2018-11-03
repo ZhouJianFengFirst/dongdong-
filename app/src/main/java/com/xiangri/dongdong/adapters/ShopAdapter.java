@@ -9,6 +9,9 @@ import com.xiangri.dongdong.MainActivity;
 import com.xiangri.dongdong.R;
 import com.xiangri.dongdong.activity.ShowShopActivity;
 import com.xiangri.dongdong.entity.ShopBean;
+import com.xiangri.dongdong.entity.UserBean;
+
+import org.greenrobot.eventbus.EventBus;
 
 import java.util.List;
 

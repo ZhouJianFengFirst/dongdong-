@@ -1,8 +1,10 @@
 package com.xiangri.dongdong.perstener;
 
 import android.content.Context;
+import android.content.Intent;
 import android.graphics.Color;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -25,6 +27,7 @@ public class MainActivityPerstener extends AppDelegate {
     private Context mContext;
     private List<TabViewChild> tabchilds = new ArrayList<>();
     private TabViewChild tabMe;
+    private FragmentManager manger;
 
     @Override
     protected int getLayoutId() {
@@ -40,18 +43,18 @@ public class MainActivityPerstener extends AppDelegate {
     @Override
     public void initData() {
         super.initData();
-        TabView tabView = (TabView) getView(R.id.tabview);
+        final TabView tabView = (TabView) getView(R.id.tabview);
 
         TabViewChild tabHome = new TabViewChild(R.drawable.index_yes, R.drawable.index_no, "首页", new HomeFragment());
         TabViewChild tabList = new TabViewChild(R.drawable.list_yes, R.drawable.list_no, "列表", new ListFragment());
-        TabViewChild tabShopCar = new TabViewChild(R.drawable.car_yes, R.drawable.car_no,"购物车", new ShopCarFragment());
+        TabViewChild tabShopCar = new TabViewChild(R.drawable.car_yes, R.drawable.car_no, "购物车", new ShopCarFragment());
         tabMe = new TabViewChild(R.drawable.me_yes, R.drawable.me_no, "我的", new MeFragment());
         tabchilds.add(tabHome);
         tabchilds.add(tabList);
         tabchilds.add(tabShopCar);
         tabchilds.add(tabMe);
-
-        tabView.setTabViewChild(tabchilds, ((MainActivity) mContext).getSupportFragmentManager());
+        manger = ((MainActivity) mContext).getSupportFragmentManager();
+        tabView.setTabViewChild(tabchilds,manger);
         tabView.setOnTabChildClickListener(new TabView.OnTabChildClickListener() {
             @Override
             public void onTabChildClick(int position, ImageView imageView, TextView textView) {
@@ -60,9 +63,6 @@ public class MainActivityPerstener extends AppDelegate {
                 }
             }
         });
-
-
-
     }
 
     private void setBar() {
@@ -71,6 +71,4 @@ public class MainActivityPerstener extends AppDelegate {
                 .build((MainActivity) mContext)
                 .apply();
     }
-
-
 }

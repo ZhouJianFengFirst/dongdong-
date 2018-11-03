@@ -1,6 +1,7 @@
 package com.xiangri.dongdong.perstener;
 
 import android.content.Context;
+import android.content.Intent;
 import android.support.annotation.Nullable;
 import android.support.v4.view.ViewPager;
 import android.util.Log;
@@ -13,6 +14,7 @@ import android.widget.RelativeLayout;
 import com.bumptech.glide.Glide;
 import com.example.xlistviewlib.XListView;
 import com.google.gson.Gson;
+import com.xiangri.dongdong.MainActivity;
 import com.xiangri.dongdong.R;
 import com.xiangri.dongdong.adapters.JiuPageAdapter;
 import com.xiangri.dongdong.adapters.ListAdapter;
@@ -21,6 +23,8 @@ import com.xiangri.dongdong.entity.JiuBean;
 import com.xiangri.dongdong.entity.ShopBean;
 import com.xiangri.dongdong.mvp.view.AppDelegate;
 import com.xiangri.dongdong.net.Http;
+import com.yzq.zxinglibrary.android.CaptureActivity;
+import com.yzq.zxinglibrary.android.PermissionUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -28,11 +32,12 @@ import java.util.List;
 import cn.bingoogolapple.bgabanner.BGABanner;
 import de.hdodenhof.circleimageview.CircleImageView;
 
-public class FragmentHomePersenter extends AppDelegate {
+public class FragmentHomePersenter extends AppDelegate implements View.OnClickListener{
 
     private static final int BANNER_REQUEST = 1;
     private static final int JIU_REQUEST = 2;
     private static final int SHOP_REQUEST = 3;
+    public static final int START_ACTIVITY = 4;
     private Context mContext;
     private BGABanner banner;
     private CircleImageView scan;
@@ -88,6 +93,8 @@ public class FragmentHomePersenter extends AppDelegate {
         listAdapter = new ListAdapter(mContext);
         xlistview.setAdapter(listAdapter);
         xlistview.addHeaderView(view);
+        scan.setOnClickListener(this);
+        message.setOnClickListener(this);
         xlistview.setOnScrollListener(new AbsListView.OnScrollListener() {
             @Override
             public void onScrollStateChanged(AbsListView view, int scrollState) {
@@ -160,5 +167,22 @@ public class FragmentHomePersenter extends AppDelegate {
             }
         });
         banner.setData(images, titles);
+
+    }
+
+    @Override
+    public void onClick(View v) {
+        switch (v.getId()){
+            case R.id.scan:
+                PermissionUtils.permission(mContext, new PermissionUtils.PermissionListener() {
+                    @Override
+                    public void success() {
+                        ((MainActivity)mContext).startActivityForResult(new Intent(mContext, CaptureActivity.class),START_ACTIVITY);
+                    }
+                });
+                break;
+            case R.id.message:
+                break;
+        }
     }
 }

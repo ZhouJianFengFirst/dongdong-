@@ -141,6 +141,10 @@ public class FragmentShopCarPersenter extends AppDelegate implements View.OnClic
         if (carList.contains(">")) {
             return;
         }
+        if ("null".equals(carList)){
+            toast("还没有商品");
+            return;
+        }
         Gson gson = new Gson();
         carBean = gson.fromJson(carList, CarBean.class);
         if ("1".equals(carBean.getCode())){
@@ -169,5 +173,9 @@ public class FragmentShopCarPersenter extends AppDelegate implements View.OnClic
             }
         }
         setContent();
+    }
+
+    public void notifyChange() {
+        initData();
     }
 }

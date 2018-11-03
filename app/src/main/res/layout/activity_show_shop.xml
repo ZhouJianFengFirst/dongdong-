@@ -2,7 +2,6 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
     xmlns:top="http://schemas.android.com/apk/res-auto">
 
     <com.xiangri.dongdong.view.TopView
@@ -14,44 +13,54 @@
         android:id="@+id/web_shop"
         android:layout_below="@id/shop_top"
         android:layout_width="match_parent"
-        android:layout_above="@id/bottom_all"
-        android:layout_height="match_parent"></WebView>
-    <LinearLayout
+        android:layout_height="wrap_content"
+        android:layout_above="@id/bottom_all"></WebView>
+    <RelativeLayout
         android:id="@+id/bottom_all"
         android:layout_width="match_parent"
-        android:layout_height="50dp"
-        android:orientation="horizontal"
+        android:layout_height="60dp"
         android:layout_alignParentBottom="true"
         android:weightSum="1">
-        <ImageVie
-            android:id="@+id/coll"
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:src="@drawable/coll_no"
-            android:layout_margin="5dp"
-            android:layout_weight="0.1"/>
+        <com.facebook.drawee.view.SimpleDraweeView
+            android:id="@+id/image_coll"
+            android:layout_width="30dp"
+            android:layout_height="30dp"
+            android:layout_marginLeft="20dp"
+            android:layout_centerVertical="true"/>
         <TextView
-            android:id="@+id/txt_inmycar"
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="0.45"
-            android:layout_marginLeft="5dp"
-            android:textSize="20dp"
+            android:layout_below="@id/image_coll"
+            android:layout_width="30dp"
+            android:textSize="10dp"
+            android:layout_marginLeft="20dp"
             android:gravity="center"
-            android:background="#FF8C00"
-            android:textColor="@color/colore8e8e8"
-            android:text="加入购物车"/>
-        <TextView
-            android:id="@+id/txt_nowbay"
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="0.45"
-            android:layout_marginLeft="5dp"
-            android:layout_marginRight="5dp"
-            android:textSize="20dp"
-            android:gravity="center"
-            android:background="#FF0000"
-            android:textColor="@color/colore8e8e8"
-            android:text="立即购买"/>
-    </LinearLayout>
+            android:layout_height="20dp"
+            android:text="收藏"/>
+        <LinearLayout
+            android:layout_toRightOf="@id/image_coll"
+            android:layout_marginLeft="10dp"
+            android:orientation="horizontal"
+            android:layout_width="match_parent"
+            android:layout_height="60dp">
+            <TextView
+                android:id="@+id/txt_inmycar"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="0.45"
+                android:textSize="20dp"
+                android:gravity="center"
+                android:background="#FF8C00"
+                android:textColor="@color/colore8e8e8"
+                android:text="加入购物车"/>
+            <TextView
+                android:id="@+id/txt_nowbay"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="0.45"
+                android:textSize="20dp"
+                android:gravity="center"
+                android:background="#FF0000"
+                android:textColor="@color/colore8e8e8"
+                android:text="立即购买"/>
+        </LinearLayout>
+    </RelativeLayout>
 </RelativeLayout>

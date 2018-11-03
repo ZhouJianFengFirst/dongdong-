@@ -21,4 +21,5 @@ public interface IDelegate {
     void getString(String url, int type);
 
     void postString(String url, int type, RequestBody body);
+
 }

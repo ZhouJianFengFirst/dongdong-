@@ -10,4 +10,10 @@ public class ShopCarFragment extends BaseFragment<FragmentShopCarPersenter> {
     public Class<FragmentShopCarPersenter> getDelegateClass() {
         return FragmentShopCarPersenter.class;
     }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        delegate.notifyChange();
+    }
 }

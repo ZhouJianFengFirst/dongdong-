@@ -71,7 +71,7 @@ public abstract class AppDelegate implements IDelegate {
 
             @Override
             public void fail(String msg) {
-                fail(msg);
+                failString(msg);
             }
         });
     }
@@ -87,6 +87,7 @@ public abstract class AppDelegate implements IDelegate {
     public void toast(String msg) {
         Toast.makeText(mContext, msg, Toast.LENGTH_SHORT).show();
     }
+
     public void toast(String title,String msg,int s){
         Alerter.create(((AppCompatActivity)mContext)).setBackgroundColor(R.color.colorPrimary)
                 .setText(msg)
