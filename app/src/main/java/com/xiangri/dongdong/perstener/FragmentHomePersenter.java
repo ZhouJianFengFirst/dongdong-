@@ -2,6 +2,7 @@ package com.xiangri.dongdong.perstener;
 
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Color;
 import android.support.annotation.Nullable;
 import android.support.v4.view.ViewPager;
 import android.util.Log;
@@ -52,6 +53,7 @@ public class FragmentHomePersenter extends AppDelegate implements View.OnClickLi
     private XListView xlistview;
     private ListAdapter listAdapter;
     private RelativeLayout layoutTop;
+    private RelativeLayout layoutTopSeach;
 
     @Override
     protected int getLayoutId() {
@@ -84,6 +86,8 @@ public class FragmentHomePersenter extends AppDelegate implements View.OnClickLi
     private void setEvent() {
         layoutTop = (RelativeLayout) getView(R.id.layout_top);
         View view = View.inflate(mContext, R.layout.layout_home_jiu, null);
+        view.findViewById(R.id.scan).setOnClickListener(this);
+        layoutTopSeach =  (RelativeLayout)view.findViewById(R.id.layout_top);
         viewpage = (ViewPager) view.findViewById(R.id.viewpage);
         childLinear = (LinearLayout) view.findViewById(R.id.layout_postion);
         banner = (BGABanner) view.findViewById(R.id.banner);
@@ -92,6 +96,7 @@ public class FragmentHomePersenter extends AppDelegate implements View.OnClickLi
         xlistview = (XListView) getView(R.id.xListView);
         listAdapter = new ListAdapter(mContext);
         xlistview.setAdapter(listAdapter);
+        //添加头部
         xlistview.addHeaderView(view);
         scan.setOnClickListener(this);
         message.setOnClickListener(this);
@@ -103,10 +108,13 @@ public class FragmentHomePersenter extends AppDelegate implements View.OnClickLi
 
             @Override
             public void onScroll(AbsListView view, int firstVisibleItem, int visibleItemCount, int totalItemCount) {
+                layoutTop.setBackgroundColor(Color.parseColor("#d43c3c"));
                 if(firstVisibleItem>=1){
                     layoutTop.setVisibility(View.VISIBLE);
+                    layoutTopSeach.setVisibility(View.GONE);
                 }else{
                     layoutTop.setVisibility(View.GONE);
+                    layoutTopSeach.setVisibility(View.VISIBLE);
                 }
             }
         });
