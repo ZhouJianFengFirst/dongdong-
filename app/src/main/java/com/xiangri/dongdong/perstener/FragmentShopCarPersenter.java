@@ -176,6 +176,13 @@ public class FragmentShopCarPersenter extends AppDelegate implements View.OnClic
     }
 
     public void notifyChange() {
-        initData();
+        Boolean isLogion = (Boolean) SpUtil.getInserter(mContext).getSpData("login_flag",false);
+        if (!isLogion){
+            DialogUtils dialogUtils = new DialogUtils(mContext);
+            dialogUtils.show();
+        }
+        String uid = (String) SpUtil.getInserter(mContext).getSpData("uid","-1");
+        //设置列表的网络数据
+        getString(Http.GET_SHOP_CAR_URL + "?uid="+uid+"", CAR_LIST_REQUEST);
     }
 }

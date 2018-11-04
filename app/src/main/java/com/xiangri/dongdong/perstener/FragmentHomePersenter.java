@@ -84,18 +84,28 @@ public class FragmentHomePersenter extends AppDelegate implements View.OnClickLi
     }
 
     private void setEvent() {
+
+        //头部信息
         layoutTop = (RelativeLayout) getView(R.id.layout_top);
+
         View view = View.inflate(mContext, R.layout.layout_home_jiu, null);
         view.findViewById(R.id.scan).setOnClickListener(this);
         layoutTopSeach =  (RelativeLayout)view.findViewById(R.id.layout_top);
+
         viewpage = (ViewPager) view.findViewById(R.id.viewpage);
         childLinear = (LinearLayout) view.findViewById(R.id.layout_postion);
         banner = (BGABanner) view.findViewById(R.id.banner);
         scan = (CircleImageView) getView(R.id.scan);
         message = (CircleImageView) getView(R.id.message);
+
+
+
         xlistview = (XListView) getView(R.id.xListView);
         listAdapter = new ListAdapter(mContext);
+
+
         xlistview.setAdapter(listAdapter);
+
         //添加头部
         xlistview.addHeaderView(view);
         scan.setOnClickListener(this);

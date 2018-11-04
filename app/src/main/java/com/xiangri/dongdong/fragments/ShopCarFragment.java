@@ -14,6 +14,10 @@ public class ShopCarFragment extends BaseFragment<FragmentShopCarPersenter> {
     @Override
     public void onResume() {
         super.onResume();
+        notifyChange();
+    }
+
+    public void notifyChange(){
         delegate.notifyChange();
     }
 }

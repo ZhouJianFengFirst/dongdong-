@@ -12,9 +12,11 @@ import android.widget.TextView;
 import com.xiangri.dongdong.MainActivity;
 import com.xiangri.dongdong.R;
 import com.xiangri.dongdong.activity.LoginActivity;
+import com.xiangri.dongdong.activity.MyMessageActivity;
 import com.xiangri.dongdong.adapters.MeListAdapter;
 import com.xiangri.dongdong.entity.MeListBean;
 import com.xiangri.dongdong.mvp.view.AppDelegate;
+import com.xiangri.dongdong.utils.SpUtil;
 import com.xiangri.dongdong.view.WaterView;
 
 import java.util.ArrayList;
@@ -84,7 +86,12 @@ public class FragmentMePersenter extends AppDelegate implements View.OnClickList
     public void onClick(View v) {
         switch (v.getId()){
             case R.id.userimage:
-                ((MainActivity)mContext).startActivity(new Intent(mContext, LoginActivity.class));
+               Boolean flag = (Boolean) SpUtil.getInserter(mContext).getSpData("login_flag",false);
+                if (flag){
+                    ((MainActivity)mContext).startActivity(new Intent(mContext, MyMessageActivity.class));
+                }else {
+                    ((MainActivity)mContext).startActivity(new Intent(mContext, LoginActivity.class));
+                }
                 break;
         }
     }
