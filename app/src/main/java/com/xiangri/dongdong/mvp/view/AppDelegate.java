@@ -9,13 +9,20 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Toast;
 
-import com.tapadoo.alerter.Alert;
 import com.tapadoo.alerter.Alerter;
 import com.xiangri.dongdong.R;
+import com.xiangri.dongdong.net.BaseObserver;
 import com.xiangri.dongdong.net.HttpHelper;
 import com.xiangri.dongdong.net.HttpRequestListener;
+import com.xiangri.dongdong.net.RetrofitHelper;
 
+import java.io.IOException;
+import java.util.Map;
+
+import io.reactivex.Observer;
+import io.reactivex.disposables.Disposable;
 import okhttp3.RequestBody;
+import okhttp3.ResponseBody;
 
 public abstract class AppDelegate implements IDelegate {
 
@@ -46,34 +53,61 @@ public abstract class AppDelegate implements IDelegate {
     }
 
     @Override
-    public void getString(String url, final int type) {
-        new HttpHelper().doGet(url).setListener(new HttpRequestListener() {
+    public void getString(String url, final int type, Map<String, String> map) {
+
+        BaseObserver ob = new BaseObserver<ResponseBody>() {
+
             @Override
-            public void successRequest(String data) {
-                successString(data, type);
+            public void onNext(ResponseBody responseBody) {
+                super.onNext(responseBody);
+                try {
+                    if (responseBody != null){
+                        String data = responseBody.string();
+                        successString(data,type);
+                    }else{
+                        failString("请求错误");
+                    }
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
             }
 
             @Override
-            public void fail(String msg) {
-                failString(msg);
+            public void onError(Throwable e) {
+                failString(e.getMessage());
             }
-        });
+        };
+        RetrofitHelper.getInstens().doGet(url, map,ob);
     }
 
 
     @Override
-    public void postString(String url, final int type, RequestBody body) {
-        new HttpHelper().doPost(url, body).setListener(new HttpRequestListener() {
+    public void postString(String url, final int type, Map<String,String> map) {
+
+        BaseObserver ob = new BaseObserver<ResponseBody>() {
+
             @Override
-            public void successRequest(String data) {
-                successString(data, type);
+            public void onNext(ResponseBody responseBody) {
+                super.onNext(responseBody);
+                try {
+                    if (responseBody != null){
+                        String data = responseBody.string();
+                        successString(data,type);
+                    }else{
+                        failString("请求错误");
+                    }
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
             }
 
             @Override
-            public void fail(String msg) {
-                failString(msg);
+            public void onError(Throwable e) {
+                failString(e.getMessage());
             }
-        });
+        };
+        RetrofitHelper.getInstens().doPost(url, map,ob);
+
     }
 
     public void successString(String data, int type) {

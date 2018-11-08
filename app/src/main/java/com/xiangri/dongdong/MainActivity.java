@@ -13,9 +13,18 @@ import com.yzq.zxinglibrary.common.Constant;
 
 public class MainActivity extends BaseActivity<MainActivityPerstener> {
 
+
+
+
     @Override
     public Class<MainActivityPerstener> getDelegateClass() {
         return MainActivityPerstener.class;
+    }
+
+    @Override
+    public void initWeght() {
+        super.initWeght();
+
     }
 
     @Override

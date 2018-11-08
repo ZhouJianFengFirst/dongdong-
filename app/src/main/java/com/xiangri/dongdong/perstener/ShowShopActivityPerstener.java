@@ -87,8 +87,7 @@ public class ShowShopActivityPerstener extends AppDelegate implements View.OnCli
 
         if (flag) {
             String uid = (String) SpUtil.getInserter(mContext).getSpData("uid", "0");
-            Log.d("ok",uid+"-----"+pid);
-            getString(Http.ADD_SHOP_CAR_URL+"?uid="+uid+"&pid="+pid+"", ADD_CHAR_CONTNEN);
+            getString(Http.ADD_SHOP_CAR_URL+"?uid="+uid+"&pid="+pid+"", ADD_CHAR_CONTNEN,null);
         }
     }
 

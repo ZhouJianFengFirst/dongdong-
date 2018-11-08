@@ -37,9 +37,9 @@ public class FragmentListPersenter extends AppDelegate implements LeftRecyAdapte
         setEvent();
 
         //设置左面的列表进行网络请求
-        getString(Http.JIU_URL, CONTENT_REQUEST);
+        getString(Http.JIU_URL, CONTENT_REQUEST,null);
 
-        getString(Http.RIGHT_URL+"1",RIGHT_REQUEST);
+        getString(Http.RIGHT_URL+"1",RIGHT_REQUEST,null);
     }
 
     private void setEvent() {
@@ -99,7 +99,7 @@ public class FragmentListPersenter extends AppDelegate implements LeftRecyAdapte
 
     @Override
     public void clickOk(int cid) {
-        getString(Http.RIGHT_URL+cid,RIGHT_REQUEST);
+        getString(Http.RIGHT_URL+cid,RIGHT_REQUEST,null);
     }
 
     public void setRightAdapter(String data) {

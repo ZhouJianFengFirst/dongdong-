@@ -31,6 +31,7 @@ public class MyMessageActivityPerstener extends AppDelegate implements View.OnCl
     private void setEvent() {
         userSimpView =  (SimpleDraweeView) getView(R.id.litter_user_image);
         userSimpView.setImageResource(R.drawable.login);
+        setClick(this,R.id.litter_user_image);
     }
 
     @Override
@@ -41,6 +42,9 @@ public class MyMessageActivityPerstener extends AppDelegate implements View.OnCl
     @Override
     public void onClick(View v) {
         switch (v.getId()){
+            case R.id.litter_user_image:
+
+                break;
         }
     }
 }

@@ -53,7 +53,7 @@ public class FragmentShopCarPersenter extends AppDelegate implements View.OnClic
         }
         String uid = (String) SpUtil.getInserter(mContext).getSpData("uid","-1");
         //设置列表的网络数据
-        getString(Http.GET_SHOP_CAR_URL + "?uid="+uid+"", CAR_LIST_REQUEST);
+        getString(Http.GET_SHOP_CAR_URL + "?uid="+uid+"", CAR_LIST_REQUEST,null);
     }
 
     private void setEvent() {
@@ -183,6 +183,6 @@ public class FragmentShopCarPersenter extends AppDelegate implements View.OnClic
         }
         String uid = (String) SpUtil.getInserter(mContext).getSpData("uid","-1");
         //设置列表的网络数据
-        getString(Http.GET_SHOP_CAR_URL + "?uid="+uid+"", CAR_LIST_REQUEST);
+        getString(Http.GET_SHOP_CAR_URL + "?uid="+uid+"", CAR_LIST_REQUEST,null);
     }
 }

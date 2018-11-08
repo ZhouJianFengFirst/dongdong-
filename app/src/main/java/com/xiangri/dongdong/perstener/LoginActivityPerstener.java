@@ -21,6 +21,8 @@ import com.xiangri.dongdong.net.Http;
 import com.xiangri.dongdong.utils.SpUtil;
 
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 
 import okhttp3.FormBody;
 import okhttp3.MediaType;
@@ -87,8 +89,11 @@ public class LoginActivityPerstener extends AppDelegate implements View.OnClickL
             toast("用户友情提示：","用户名密码不能为空",4000);
             return;
         }
-        RequestBody body = new FormBody.Builder().add("mobile",username).add("password",userpass).build();
-        postString(Http.USER_LOGIN_URL,USER_LOGIN,body);
+//        RequestBody body = new FormBody.Builder().add("mobile",username).add("password",userpass).build();
+        Map<String,String> map = new HashMap<>();
+        map.put("mobile",username);
+        map.put("password",userpass);
+        postString(Http.USER_LOGIN_URL,USER_LOGIN,map);
     }
 
     @Override

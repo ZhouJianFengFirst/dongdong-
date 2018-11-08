@@ -24,6 +24,7 @@ import com.xiangri.dongdong.entity.JiuBean;
 import com.xiangri.dongdong.entity.ShopBean;
 import com.xiangri.dongdong.mvp.view.AppDelegate;
 import com.xiangri.dongdong.net.Http;
+import com.xiangri.dongdong.view.HorseView;
 import com.yzq.zxinglibrary.android.CaptureActivity;
 import com.yzq.zxinglibrary.android.PermissionUtils;
 
@@ -33,7 +34,7 @@ import java.util.List;
 import cn.bingoogolapple.bgabanner.BGABanner;
 import de.hdodenhof.circleimageview.CircleImageView;
 
-public class FragmentHomePersenter extends AppDelegate implements View.OnClickListener{
+public class FragmentHomePersenter extends AppDelegate implements View.OnClickListener {
 
     private static final int BANNER_REQUEST = 1;
     private static final int JIU_REQUEST = 2;
@@ -54,6 +55,7 @@ public class FragmentHomePersenter extends AppDelegate implements View.OnClickLi
     private ListAdapter listAdapter;
     private RelativeLayout layoutTop;
     private RelativeLayout layoutTopSeach;
+    private HorseView horseview;
 
     @Override
     protected int getLayoutId() {
@@ -74,36 +76,62 @@ public class FragmentHomePersenter extends AppDelegate implements View.OnClickLi
         setEvent();
 
         //设定banner图进行网络请求
-        getString(Http.BANNER_URL, BANNER_REQUEST);
+        getString(Http.BANNER_URL, BANNER_REQUEST,null);
 
         //设定9宫格的网络请求
-        getString(Http.JIU_URL, JIU_REQUEST);
+        getString(Http.JIU_URL, JIU_REQUEST,null);
 
         //设定列表进行网络请求
-        getString(Http.SHOP_URL, SHOP_REQUEST);
+        getString(Http.SHOP_URL, SHOP_REQUEST,null);
     }
 
     private void setEvent() {
 
-        //头部信息
+        //头部的搜索框
         layoutTop = (RelativeLayout) getView(R.id.layout_top);
-
+        //初始化准备添加头部的view
         View view = View.inflate(mContext, R.layout.layout_home_jiu, null);
         view.findViewById(R.id.scan).setOnClickListener(this);
-        layoutTopSeach =  (RelativeLayout)view.findViewById(R.id.layout_top);
-
+        //跑马灯
+        horseview = (HorseView) view.findViewById(R.id.horseview);
+        //头部信息里面的搜索框
+        layoutTopSeach = (RelativeLayout) view.findViewById(R.id.layout_top);
+        //头部信息里的viewpage
         viewpage = (ViewPager) view.findViewById(R.id.viewpage);
+        //准备添加的小圆点控件
         childLinear = (LinearLayout) view.findViewById(R.id.layout_postion);
+        //banner图的控件
         banner = (BGABanner) view.findViewById(R.id.banner);
+        //扫一扫
         scan = (CircleImageView) getView(R.id.scan);
+        //信息
         message = (CircleImageView) getView(R.id.message);
-
-
-
+        //listview
         xlistview = (XListView) getView(R.id.xListView);
+        //打开上拉刷新下拉加载的开关
+        xlistview.setPullLoadEnable(true);
+        xlistview.setPullRefreshEnable(true);
+        xlistview.setXListViewListener(new XListView.IXListViewListener() {
+            @Override
+            public void onRefresh() {
+                //设定banner图进行网络请求
+                getString(Http.BANNER_URL, BANNER_REQUEST,null);
+
+                //设定9宫格的网络请求
+                getString(Http.JIU_URL, JIU_REQUEST,null);
+
+                //设定列表进行网络请求
+                getString(Http.SHOP_URL, SHOP_REQUEST,null);
+            }
+
+            @Override
+            public void onLoadMore() {
+
+            }
+        });
+        //初始化适配器
         listAdapter = new ListAdapter(mContext);
-
-
+        //设置适配器
         xlistview.setAdapter(listAdapter);
 
         //添加头部
@@ -119,10 +147,10 @@ public class FragmentHomePersenter extends AppDelegate implements View.OnClickLi
             @Override
             public void onScroll(AbsListView view, int firstVisibleItem, int visibleItemCount, int totalItemCount) {
                 layoutTop.setBackgroundColor(Color.parseColor("#d43c3c"));
-                if(firstVisibleItem>=1){
+                if (firstVisibleItem >= 1) {
                     layoutTop.setVisibility(View.VISIBLE);
                     layoutTopSeach.setVisibility(View.GONE);
-                }else{
+                } else {
                     layoutTop.setVisibility(View.GONE);
                     layoutTopSeach.setVisibility(View.VISIBLE);
                 }
@@ -147,6 +175,7 @@ public class FragmentHomePersenter extends AppDelegate implements View.OnClickLi
                 break;
         }
     }
+
     private void setViewPageAdapter(String data) {
         if (data.contains(">")) {
             return;
@@ -161,6 +190,14 @@ public class FragmentHomePersenter extends AppDelegate implements View.OnClickLi
                 onePage.add(jiuBean.getData().get(i));
             }
         }
+        //设置跑马灯的数据
+        List<String> titles = new ArrayList<>();
+        List<String> images = new ArrayList<>();
+        for (int i = 0; i < jiuBean.getData().size(); i++) {
+            titles.add(jiuBean.getData().get(i).getName());
+            images.add(jiuBean.getData().get(i).getIcon());
+        }
+        horseview.setData(titles, images);
         JiuPageAdapter jiuPageAdapter = new JiuPageAdapter(mContext, onePage, towPage, 2);
         viewpage.setAdapter(jiuPageAdapter);
     }
@@ -190,12 +227,12 @@ public class FragmentHomePersenter extends AppDelegate implements View.OnClickLi
 
     @Override
     public void onClick(View v) {
-        switch (v.getId()){
+        switch (v.getId()) {
             case R.id.scan:
                 PermissionUtils.permission(mContext, new PermissionUtils.PermissionListener() {
                     @Override
                     public void success() {
-                        ((MainActivity)mContext).startActivityForResult(new Intent(mContext, CaptureActivity.class),START_ACTIVITY);
+                        ((MainActivity) mContext).startActivityForResult(new Intent(mContext, CaptureActivity.class), START_ACTIVITY);
                     }
                 });
                 break;

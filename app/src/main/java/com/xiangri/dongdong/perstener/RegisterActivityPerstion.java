@@ -17,6 +17,9 @@ import com.xiangri.dongdong.mvp.view.AppDelegate;
 import com.xiangri.dongdong.net.Http;
 import com.xiangri.dongdong.utils.SpUtil;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import okhttp3.FormBody;
 import okhttp3.RequestBody;
 
@@ -66,8 +69,11 @@ public class RegisterActivityPerstion extends AppDelegate implements View.OnClic
             toast("注册友情提示：","用户名密码不能为空",4000);
             return;
         }
-        RequestBody body = new FormBody.Builder().add("mobile",username).add("password",userpass).build();
-        postString(Http.USER_REG_URL,REGISTER_CONTENT,body);
+        /*RequestBody body = new FormBody.Builder().add("mobile",username).add("password",userpass).build();*/
+        Map<String,String> map = new HashMap<>();
+        map.put("mobile",username);
+        map.put("password",userpass);
+        postString(Http.USER_REG_URL,REGISTER_CONTENT,map);
     }
 
     @Override

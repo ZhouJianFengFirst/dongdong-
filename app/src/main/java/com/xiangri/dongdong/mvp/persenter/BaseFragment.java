@@ -10,6 +10,8 @@ import android.view.ViewGroup;
 
 import com.xiangri.dongdong.mvp.view.AppDelegate;
 
+import butterknife.ButterKnife;
+
 public abstract class BaseFragment<T extends AppDelegate> extends Fragment {
     public T delegate;
 
@@ -32,7 +34,9 @@ public abstract class BaseFragment<T extends AppDelegate> extends Fragment {
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         delegate.initContext(getActivity());
         delegate.creat(inflater, null, savedInstanceState);
-        return delegate.getRootView();
+        View rootView = delegate.getRootView();
+        ButterKnife.bind(this,rootView);
+        return rootView;
     }
 
     @Override

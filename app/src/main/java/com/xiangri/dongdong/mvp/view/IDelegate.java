@@ -6,6 +6,8 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+import java.util.Map;
+
 import okhttp3.RequestBody;
 
 public interface IDelegate {
@@ -18,8 +20,8 @@ public interface IDelegate {
 
     void initContext(Context context);
 
-    void getString(String url, int type);
+    void getString(String url, int type,Map<String,String> map);
 
-    void postString(String url, int type, RequestBody body);
+    void postString(String url, int type, Map<String,String> map);
 
 }

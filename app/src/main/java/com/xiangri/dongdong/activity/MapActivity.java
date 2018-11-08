@@ -63,7 +63,6 @@ public class MapActivity extends AppCompatActivity implements LocationSource, AM
         });
         aMap.moveCamera(CameraUpdateFactory.zoomTo(10));//放大缩小
 
-
         LatLng latLng = new LatLng(39.906901, 116.397972);
         final Marker marker = aMap.addMarker(new MarkerOptions().position(latLng).title("北京").snippet("DefaultMarker"));
 
