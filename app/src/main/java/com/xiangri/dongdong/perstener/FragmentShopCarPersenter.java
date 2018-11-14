@@ -14,13 +14,17 @@ import com.xiangri.dongdong.R;
 import com.xiangri.dongdong.adapters.CarAdapter;
 import com.xiangri.dongdong.adapters.CarShopAdapter;
 import com.xiangri.dongdong.entity.CarBean;
+import com.xiangri.dongdong.entity.UserBean;
 import com.xiangri.dongdong.mvp.view.AppDelegate;
 import com.xiangri.dongdong.net.Http;
 import com.xiangri.dongdong.utils.DialogUtils;
 import com.xiangri.dongdong.utils.SpUtil;
 import com.xiangri.dongdong.view.TopView;
 
-public class FragmentShopCarPersenter extends AppDelegate implements View.OnClickListener, CarShopAdapter.OkClick {
+import java.util.HashMap;
+import java.util.Map;
+
+public class FragmentShopCarPersenter extends AppDelegate implements View.OnClickListener, CarShopAdapter.OkClick, TopView.BackListener {
 
     private static final int CAR_LIST_REQUEST = 1;
     private Context mContext;
@@ -33,6 +37,11 @@ public class FragmentShopCarPersenter extends AppDelegate implements View.OnClic
     private CarAdapter carAdapter;
     private double priceAll = 0.0;
     private int numAll = 0;
+    private TextView txtDelete;
+    private TextView ok;
+    private static final int DELECT_CONTNET = 0x123;
+    private TopView topView;
+    private static final int CAR_LIST_CONTENT = 0x124;
 
     @Override
     protected int getLayoutId() {
@@ -45,15 +54,6 @@ public class FragmentShopCarPersenter extends AppDelegate implements View.OnClic
 
         //设置事件
         setEvent();
-
-        Boolean isLogion = (Boolean) SpUtil.getInserter(mContext).getSpData("login_flag",false);
-        if (!isLogion){
-            DialogUtils dialogUtils = new DialogUtils(mContext);
-            dialogUtils.show();
-        }
-        String uid = (String) SpUtil.getInserter(mContext).getSpData("uid","-1");
-        //设置列表的网络数据
-        getString(Http.GET_SHOP_CAR_URL + "?uid="+uid+"", CAR_LIST_REQUEST,null);
     }
 
     private void setEvent() {
@@ -61,8 +61,13 @@ public class FragmentShopCarPersenter extends AppDelegate implements View.OnClic
         total = (TextView) getView(R.id.total);
         close = (TextView) getView(R.id.close);
         recyList = (RecyclerView) getView(R.id.recycar);
-        TopView topView = (TopView) getView(R.id.topview);
+        txtDelete = (TextView) getView(R.id.txt_delete);
+        ok = (TextView) getView(R.id.ok);
+        topView = (TopView) getView(R.id.topview);
+        topView.setListener(this);
         topView.showLeft(false);
+        txtDelete.setOnClickListener(this);
+        ok.setOnClickListener(this);
         setClick(this, R.id.selectAll, R.id.close);
     }
 
@@ -81,7 +86,40 @@ public class FragmentShopCarPersenter extends AppDelegate implements View.OnClic
                 break;
             case R.id.close:
                 break;
+            case R.id.txt_delete:
+                delectShop();
+                break;
+            case R.id.ok:
+                show(false);
+                break;
         }
+    }
+
+    //删除商品的方法
+    private void delectShop() {
+        //第一步：获取用户id
+        String uid = getUid();
+        for (int i = 0; i < carBean.getData().size(); i++) {
+            for (int j = 0; j < carBean.getData().get(i).getList().size(); j++) {
+                if (carBean.getData().get(i).getList().get(j).isIschecked()) {
+                    int pid = carBean.getData().get(i).getList().get(j).getPid();
+                    Map<String, String> map = new HashMap<String, String>();
+                    map.put("uid", uid);
+                    map.put("pid", pid + "");
+                    map.put("source", "android");
+                    carBean.getData().get(i).getList().remove(j);
+                    getString(Http.DEL_SHOP_CAR_URL, DELECT_CONTNET, map);
+                }
+            }
+            int size = carBean.getData().get(i).getList().size();
+            if (size == 0) {
+                carBean.getData().remove(i);
+            }
+        }
+
+        carAdapter.notifyDataSetChanged();
+        // notifyChange();
+        /*getString(Http.GET_SHOP_CAR_URL + "?uid=" + uid + "", CAR_LIST_CONTENT, null);*/
     }
 
     //设置全选全不选
@@ -101,6 +139,12 @@ public class FragmentShopCarPersenter extends AppDelegate implements View.OnClic
         flag = !flag;
     }
 
+
+    /**
+     * 选择的方法
+     *
+     * @param flag
+     */
     public void setSelectMouthed(boolean flag) {
         for (int i = 0; i < carBean.getData().size(); i++) {
             for (int j = 0; j < carBean.getData().get(i).getList().size(); j++) {
@@ -129,6 +173,19 @@ public class FragmentShopCarPersenter extends AppDelegate implements View.OnClic
             case CAR_LIST_REQUEST:
                 setCarList(data);
                 break;
+            case DELECT_CONTNET:
+
+                UserBean userBean = new Gson().fromJson(data, UserBean.class);
+                if ("0".equals(userBean.getCode())) {
+                    priceAll = 0.0;
+                    numAll = 0;
+                    setContent();
+                    toast("删除成功");
+                }else{
+                    toast("删除失败");
+                }
+                show(false);
+                break;
         }
     }
 
@@ -141,14 +198,13 @@ public class FragmentShopCarPersenter extends AppDelegate implements View.OnClic
         if (carList.contains(">")) {
             return;
         }
-        if ("null".equals(carList)){
+        if ("null".equals(carList)) {
             toast("还没有商品");
             return;
         }
         Gson gson = new Gson();
         carBean = gson.fromJson(carList, CarBean.class);
-        if ("1".equals(carBean.getCode())){
-            toast("还没有商品");
+        if ("1".equals(carBean.getCode())) {
             return;
         }
         LinearLayoutManager linearLayoutManager = new LinearLayoutManager(mContext);
@@ -176,13 +232,50 @@ public class FragmentShopCarPersenter extends AppDelegate implements View.OnClic
     }
 
     public void notifyChange() {
-        Boolean isLogion = (Boolean) SpUtil.getInserter(mContext).getSpData("login_flag",false);
-        if (!isLogion){
+        Boolean isLogion = (Boolean) SpUtil.getInserter(mContext).getSpData("login_flag", false);
+        if (!isLogion) {
             DialogUtils dialogUtils = new DialogUtils(mContext);
             dialogUtils.show();
         }
-        String uid = (String) SpUtil.getInserter(mContext).getSpData("uid","-1");
+        String uid = getUid();
         //设置列表的网络数据
-        getString(Http.GET_SHOP_CAR_URL + "?uid="+uid+"", CAR_LIST_REQUEST,null);
+        getString(Http.GET_SHOP_CAR_URL + "?uid=" + uid + "", CAR_LIST_REQUEST, null);
+    }
+
+    public String getUid() {
+        String uid = (String) SpUtil.getInserter(mContext).getSpData("uid", "-1");
+        return uid;
+    }
+
+    @Override
+    public void back() {
+        show(true);
+    }
+
+    /**
+     * 控制删除的显示与隐藏
+     *
+     * @param flag
+     */
+    public void show(boolean flag) {
+        if (flag) {
+            total.setVisibility(View.GONE);
+            close.setVisibility(View.GONE);
+            txtDelete.setVisibility(View.VISIBLE);
+            topView.showRight(false);
+            ok.setVisibility(View.VISIBLE);
+        } else {
+            total.setVisibility(View.VISIBLE);
+            close.setVisibility(View.VISIBLE);
+            txtDelete.setVisibility(View.GONE);
+            topView.showRight(true);
+            ok.setVisibility(View.GONE);
+        }
+    }
+
+    @Override
+    public void failString(String msg) {
+        super.failString(msg);
+        toast(msg);
     }
 }

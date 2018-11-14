@@ -10,9 +10,7 @@ public abstract class BaseObserver<T> implements Observer<T> {
     }
 
     @Override
-    public void onNext(T t) {
-
-    }
+    public abstract void onNext(T t) ;
 
     @Override
     public abstract void onError(Throwable e);

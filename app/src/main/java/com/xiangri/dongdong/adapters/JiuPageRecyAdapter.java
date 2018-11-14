@@ -4,12 +4,13 @@ import android.content.Context;
 
 import com.xiangri.dongdong.R;
 import com.xiangri.dongdong.entity.JiuBean;
+import com.xiangri.dongdong.entity.JiuDataBean;
 
 import java.util.List;
 
-public class JiuPageRecyAdapter extends RecycleAdapter<JiuBean.DataBean>   {
+public class JiuPageRecyAdapter extends RecycleAdapter<JiuDataBean>   {
 
-    public JiuPageRecyAdapter(Context mcontext, List<JiuBean.DataBean> datas) {
+    public JiuPageRecyAdapter(Context mcontext, List<JiuDataBean> datas) {
         super(mcontext, datas);
     }
 
@@ -19,12 +20,12 @@ public class JiuPageRecyAdapter extends RecycleAdapter<JiuBean.DataBean>   {
     }
 
     @Override
-    protected void convert(ViewHolder viewHolder, JiuBean.DataBean dataBean, int postion) {
+    protected void convert(ViewHolder viewHolder, JiuDataBean dataBean, int postion) {
         viewHolder.setText(R.id.txt, dataBean.getName()).setImageUrl(R.id.gride_image, dataBean.getIcon());
     }
 
     @Override
-    public void convertPrent(ViewHolder viewHolder, List<JiuBean.DataBean> t, int postion) {
+    public void convertPrent(ViewHolder viewHolder, List<JiuDataBean> t, int postion) {
 
     }
 }

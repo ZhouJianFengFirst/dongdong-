@@ -17,13 +17,16 @@ import com.example.xlistviewlib.XListView;
 import com.google.gson.Gson;
 import com.xiangri.dongdong.MainActivity;
 import com.xiangri.dongdong.R;
+import com.xiangri.dongdong.activity.SearchActivity;
 import com.xiangri.dongdong.adapters.JiuPageAdapter;
 import com.xiangri.dongdong.adapters.ListAdapter;
 import com.xiangri.dongdong.entity.BannerBean;
 import com.xiangri.dongdong.entity.JiuBean;
+import com.xiangri.dongdong.entity.JiuDataBean;
 import com.xiangri.dongdong.entity.ShopBean;
 import com.xiangri.dongdong.mvp.view.AppDelegate;
 import com.xiangri.dongdong.net.Http;
+import com.xiangri.dongdong.utils.SpUtil;
 import com.xiangri.dongdong.view.HorseView;
 import com.yzq.zxinglibrary.android.CaptureActivity;
 import com.yzq.zxinglibrary.android.PermissionUtils;
@@ -47,8 +50,8 @@ public class FragmentHomePersenter extends AppDelegate implements View.OnClickLi
     private List<String> images = new ArrayList<>();
     private List<String> titles = new ArrayList<>();
     private ViewPager viewPager;
-    private List<JiuBean.DataBean> onePage = new ArrayList<>();
-    private List<JiuBean.DataBean> towPage = new ArrayList<>();
+    private List<JiuDataBean> onePage = new ArrayList<>();
+    private List<JiuDataBean> towPage = new ArrayList<>();
     private ViewPager viewpage;
     private LinearLayout childLinear;
     private XListView xlistview;
@@ -71,18 +74,11 @@ public class FragmentHomePersenter extends AppDelegate implements View.OnClickLi
     @Override
     public void initData() {
         super.initData();
-
-        //设定事件
+        //初始化数据
         setEvent();
 
-        //设定banner图进行网络请求
-        getString(Http.BANNER_URL, BANNER_REQUEST,null);
-
-        //设定9宫格的网络请求
-        getString(Http.JIU_URL, JIU_REQUEST,null);
-
-        //设定列表进行网络请求
-        getString(Http.SHOP_URL, SHOP_REQUEST,null);
+        //网络请求
+        doHttp();
     }
 
     private void setEvent() {
@@ -92,6 +88,7 @@ public class FragmentHomePersenter extends AppDelegate implements View.OnClickLi
         //初始化准备添加头部的view
         View view = View.inflate(mContext, R.layout.layout_home_jiu, null);
         view.findViewById(R.id.scan).setOnClickListener(this);
+        view.findViewById(R.id.et_sou).setOnClickListener(this);
         //跑马灯
         horseview = (HorseView) view.findViewById(R.id.horseview);
         //头部信息里面的搜索框
@@ -114,19 +111,12 @@ public class FragmentHomePersenter extends AppDelegate implements View.OnClickLi
         xlistview.setXListViewListener(new XListView.IXListViewListener() {
             @Override
             public void onRefresh() {
-                //设定banner图进行网络请求
-                getString(Http.BANNER_URL, BANNER_REQUEST,null);
-
-                //设定9宫格的网络请求
-                getString(Http.JIU_URL, JIU_REQUEST,null);
-
-                //设定列表进行网络请求
-                getString(Http.SHOP_URL, SHOP_REQUEST,null);
+            /*    doHttp();*/
             }
 
             @Override
             public void onLoadMore() {
-
+               /* doHttp();*/
             }
         });
         //初始化适配器
@@ -137,6 +127,7 @@ public class FragmentHomePersenter extends AppDelegate implements View.OnClickLi
         //添加头部
         xlistview.addHeaderView(view);
         scan.setOnClickListener(this);
+        getView(R.id.et_sou).setOnClickListener(this);
         message.setOnClickListener(this);
         xlistview.setOnScrollListener(new AbsListView.OnScrollListener() {
             @Override
@@ -159,6 +150,12 @@ public class FragmentHomePersenter extends AppDelegate implements View.OnClickLi
     }
 
     @Override
+    public void failString(String msg) {
+        super.failString(msg);
+        toast("");
+    }
+
+    @Override
     public void successString(String data, int type) {
         super.successString(data, type);
         switch (type) {
@@ -169,35 +166,53 @@ public class FragmentHomePersenter extends AppDelegate implements View.OnClickLi
                 setViewPageAdapter(data);
                 break;
             case SHOP_REQUEST:
-                Gson gson = new Gson();
-                ShopBean shopBean = gson.fromJson(data, ShopBean.class);
-                listAdapter.setShopList(shopBean.getData());
+                if (data.contains(">")){
+                    getString(Http.SHOP_URL, SHOP_REQUEST,null);
+                    return;
+                }
+                if (data != null){
+                    Gson gson = new Gson();
+                    ShopBean shopBean = gson.fromJson(data, ShopBean.class);
+                    List<ShopBean.DataBean> data1 = shopBean.getData();
+                    data1.remove(0);
+                    listAdapter.setShopList(data1);
+                }
                 break;
         }
     }
 
+
+    /**
+     * 设置page九宮格
+     * @param data
+     */
     private void setViewPageAdapter(String data) {
         if (data.contains(">")) {
             return;
         }
+
+        towPage.clear();
+        onePage.clear();
         //实例化数据
         Gson gson = new Gson();
         JiuBean jiuBean = gson.fromJson(data, JiuBean.class);
         for (int i = 0; i < jiuBean.getData().size(); i++) {
-            if (i >= 8 && i < 16) {
+            if (i < 8) {
                 towPage.add(jiuBean.getData().get(i));
-            } else if (i < 8) {
+            } else if (i >= 8  && i < 16) {
                 onePage.add(jiuBean.getData().get(i));
             }
         }
-        //设置跑马灯的数据
-        List<String> titles = new ArrayList<>();
-        List<String> images = new ArrayList<>();
-        for (int i = 0; i < jiuBean.getData().size(); i++) {
-            titles.add(jiuBean.getData().get(i).getName());
-            images.add(jiuBean.getData().get(i).getIcon());
+        if(jiuBean != null){
+            //设置跑马灯的数据
+            List<String> titles = new ArrayList<>();
+            List<String> images = new ArrayList<>();
+            for (int i = 0; i < jiuBean.getData().size(); i++) {
+                titles.add(jiuBean.getData().get(i).getName());
+                images.add(jiuBean.getData().get(i).getIcon());
+            }
+            horseview.setData(titles, images);
         }
-        horseview.setData(titles, images);
         JiuPageAdapter jiuPageAdapter = new JiuPageAdapter(mContext, onePage, towPage, 2);
         viewpage.setAdapter(jiuPageAdapter);
     }
@@ -207,6 +222,7 @@ public class FragmentHomePersenter extends AppDelegate implements View.OnClickLi
      *
      * @param data
      */
+
     private void setBannerAdapter(String data) {
         Gson gson = new Gson();
         BannerBean bannerBean = gson.fromJson(data, BannerBean.class);
@@ -238,6 +254,20 @@ public class FragmentHomePersenter extends AppDelegate implements View.OnClickLi
                 break;
             case R.id.message:
                 break;
+            case R.id.et_sou:
+                ((MainActivity) mContext).startActivityForResult(new Intent(mContext, SearchActivity.class), START_ACTIVITY);
+                break;
         }
+    }
+
+    public void doHttp(){
+        //设定banner图进行网络请求
+        getString(Http.BANNER_URL, BANNER_REQUEST,null);
+
+        //设定9宫格的网络请求
+        getString(Http.JIU_URL, JIU_REQUEST,null);
+
+        //设定列表进行网络请求
+        getString(Http.SHOP_URL, SHOP_REQUEST,null);
     }
 }

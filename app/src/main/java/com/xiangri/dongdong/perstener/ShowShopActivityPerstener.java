@@ -13,7 +13,6 @@ import com.google.gson.Gson;
 import com.xiangri.dongdong.R;
 import com.xiangri.dongdong.activity.ShowShopActivity;
 import com.xiangri.dongdong.entity.RegisterBean;
-import com.xiangri.dongdong.entity.RightShopBean;
 import com.xiangri.dongdong.mvp.view.AppDelegate;
 import com.xiangri.dongdong.net.Http;
 import com.xiangri.dongdong.utils.SpUtil;
@@ -29,7 +28,7 @@ public class ShowShopActivityPerstener extends AppDelegate implements View.OnCli
     private SimpleDraweeView simpColl;
     private TextView inByCar;
     private TextView nowBay;
-    private int pid;
+    private String pid;
     private static final int ADD_CHAR_CONTNEN = 1;
 
     @Override
@@ -37,8 +36,7 @@ public class ShowShopActivityPerstener extends AppDelegate implements View.OnCli
         super.initData();
         Intent intent = ((ShowShopActivity) mContext).getIntent();
         String url = intent.getStringExtra("url");
-        pid = intent.getIntExtra("pid", 0);
-        Log.d("Tagpid", pid + "");
+        pid = intent.getStringExtra("pid");
         //設置事件
         setEvent();
         //显示Web信息资源
@@ -84,10 +82,9 @@ public class ShowShopActivityPerstener extends AppDelegate implements View.OnCli
 
     private void inPutCarShop() {
         Boolean flag = (Boolean) SpUtil.getInserter(mContext).getSpData("login_flag", false);
-
         if (flag) {
             String uid = (String) SpUtil.getInserter(mContext).getSpData("uid", "0");
-            getString(Http.ADD_SHOP_CAR_URL+"?uid="+uid+"&pid="+pid+"", ADD_CHAR_CONTNEN,null);
+            getString(Http.ADD_SHOP_CAR_URL+"?uid="+uid+"&pid="+pid, ADD_CHAR_CONTNEN,null);
         }
     }
 

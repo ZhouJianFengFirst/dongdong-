@@ -17,7 +17,7 @@ public class PermissionUtils {
     public static void permission(final Context context, final PermissionListener listener) {
         AndPermission.with(context)
                 .permission(Permission.ACCESS_COARSE_LOCATION,
-                        Permission.READ_EXTERNAL_STORAGE, Permission.WRITE_EXTERNAL_STORAGE)
+                        Permission.READ_EXTERNAL_STORAGE, Permission.WRITE_EXTERNAL_STORAGE,Permission.CAMERA)
                 .onGranted(new Action() {
                     @Override
                     public void onAction(List<String> permissions) {
@@ -35,7 +35,7 @@ public class PermissionUtils {
                     }
                 }).start();
     }
- 
+
     public interface PermissionListener {
         void success();
     }

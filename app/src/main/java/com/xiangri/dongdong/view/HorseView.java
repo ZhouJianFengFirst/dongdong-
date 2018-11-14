@@ -56,9 +56,9 @@ public class HorseView extends RelativeLayout {
     }
 
     private void setAnimation(final View view) {
-        ObjectAnimator objectAnimatorTop = ObjectAnimator.ofFloat(view, "translationY", 0, -50);
+        ObjectAnimator objectAnimatorTop = ObjectAnimator.ofFloat(view, "translationY", 0, -100);
         ObjectAnimator objectAnimator = ObjectAnimator.ofFloat(view, "translationY", 0, 0);
-        ObjectAnimator objectAnimatorB = ObjectAnimator.ofFloat(view, "translationY", 50, 0);
+        ObjectAnimator objectAnimatorB = ObjectAnimator.ofFloat(view, "translationY", 100, 0);
         animatorSet = new AnimatorSet();
         animatorSet.playSequentially(objectAnimator, objectAnimatorTop, objectAnimatorB);
         animatorSet.setDuration(1000);
@@ -76,8 +76,11 @@ public class HorseView extends RelativeLayout {
             @Override
             public void onAnimationEnd(Animator animator) {
                 postion++;
-                horseTile.setText(titles.get(postion % titles.size()));
-                horseImage.setImageURI(images.get(postion % images.size()));
+                if ( titles.size() != 0 || images.size() != 0){
+                    horseTile.setText(titles.get(postion % titles.size()));
+                    horseImage.setImageURI(images.get(postion % images.size()));
+                }
+
             }
         });
     }

@@ -1,1 +1,1 @@
-include ':app','xlistviewlib','zxinglibrary'
+include ':app','xlistviewlib','zxinglibrary','xrecyclerview'

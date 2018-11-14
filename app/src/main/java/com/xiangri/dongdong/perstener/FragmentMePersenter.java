@@ -2,6 +2,8 @@ package com.xiangri.dongdong.perstener;
 
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.BitmapFactory;
+import android.os.Environment;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.View;
@@ -50,6 +52,7 @@ public class FragmentMePersenter extends AppDelegate implements View.OnClickList
         setEvent();
         //设置adapter
         setAdapter();
+
     }
 
     private void setAdapter() {
@@ -98,5 +101,6 @@ public class FragmentMePersenter extends AppDelegate implements View.OnClickList
 
     public void setUserMessage(String username) {
         showUser.setText(username);
+        userImage.setImageBitmap(BitmapFactory.decodeFile("/sdcard/myHead/head.jpg"));
     }
 }

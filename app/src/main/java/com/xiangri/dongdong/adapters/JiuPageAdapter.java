@@ -10,6 +10,7 @@ import android.view.ViewGroup;
 
 import com.xiangri.dongdong.R;
 import com.xiangri.dongdong.entity.JiuBean;
+import com.xiangri.dongdong.entity.JiuDataBean;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -17,11 +18,11 @@ import java.util.List;
 public class JiuPageAdapter extends PagerAdapter {
 
     private Context mContext;
-    private List<JiuBean.DataBean> onePage = new ArrayList<>();
-    private List<JiuBean.DataBean> towPage = new ArrayList<>();
+    private List<JiuDataBean> onePage = new ArrayList<>();
+    private List<JiuDataBean> towPage = new ArrayList<>();
     private int pagenum = 0;
 
-    public JiuPageAdapter(Context mContext, List<JiuBean.DataBean> onPage, List<JiuBean.DataBean> towPage, int pagenum) {
+    public JiuPageAdapter(Context mContext, List<JiuDataBean> onPage, List<JiuDataBean> towPage, int pagenum) {
         this.mContext = mContext;
         this.onePage = onPage;
         this.towPage = towPage;

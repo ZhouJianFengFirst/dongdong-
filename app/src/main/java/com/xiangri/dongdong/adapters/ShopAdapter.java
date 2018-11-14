@@ -34,13 +34,13 @@ public class ShopAdapter extends RecycleAdapter<ShopBean.DataBean.ListBean> {
     protected void convert(com.xiangri.dongdong.adapters.ViewHolder viewHolder, final ShopBean.DataBean.ListBean listBean, int postion) {
         i = postion;
         String[] split = listBean.getImages().split("\\|");
-        viewHolder.setImageUrl(R.id.gride_image, split[0]).setText(R.id.txt, listBean.getTitle());
+        viewHolder.setImageUrl(R.id.gride_image, split[0]).setText(R.id.txt, listBean.getTitle()).setText(R.id.txt_price,"￥"+listBean.getPrice()+"");
         viewHolder.getRootView().setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 Intent intent = new Intent(mContext, ShowShopActivity.class);
-                intent.putExtra("pid",listBean.getPid());
-                intent.putExtra("url",listBean.getDetailUrl());
+                intent.putExtra("pid",listBean.getPid()+"");
+                intent.putExtra("url",listBean.getDetailUrl()+"");
                 ((MainActivity)mContext).startActivity(intent);
             }
         });

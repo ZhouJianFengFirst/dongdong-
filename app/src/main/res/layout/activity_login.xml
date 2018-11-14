@@ -1,97 +1,103 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
     android:background="#F5F5F5"
-    xmlns:app="http://schemas.android.com/apk/res-auto">
+    android:orientation="vertical">
 
     <com.xiangri.dongdong.view.TopView
         android:id="@+id/login_user"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        app:title="登录"
-        app:rightcontent="帮助"></com.xiangri.dongdong.view.TopView>
+        app:rightcontent="帮助"
+        app:title="登录"></com.xiangri.dongdong.view.TopView>
 
     <LinearLayout
         android:layout_width="match_parent"
-        android:background="@color/colorefff"
+        android:layout_height="100dp"
         android:layout_marginTop="10dp"
-        android:orientation="vertical"
-        android:layout_height="100dp">
+        android:background="@color/colorefff"
+        android:orientation="vertical">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="50dp"
             android:orientation="horizontal"
             android:weightSum="1">
+
             <TextView
                 android:layout_width="0dp"
-                android:layout_weight="0.2"
                 android:layout_height="match_parent"
-                android:text="账户"
+                android:layout_weight="0.2"
                 android:gravity="center"
-                android:textColor="@color/colore000"/>
+                android:text="账户"
+                android:textColor="@color/colore000" />
+
             <EditText
                 android:id="@+id/et_username"
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
                 android:layout_weight="0.8"
-                android:hint="请输入账号"
-                />
+                android:hint="请输入账号" />
         </LinearLayout>
+
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="50dp"
             android:orientation="horizontal"
             android:weightSum="1">
+
             <TextView
                 android:layout_width="0dp"
-                android:layout_weight="0.2"
                 android:layout_height="match_parent"
-                android:text="登录密码"
+                android:layout_weight="0.2"
                 android:gravity="center"
-                android:textColor="@color/colore000"/>
+                android:text="登录密码"
+                android:textColor="@color/colore000" />
+
             <EditText
                 android:id="@+id/et_password"
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
                 android:layout_weight="0.8"
-                android:hint="请输入账号"
-                />
+                android:hint="请输入账号" />
         </LinearLayout>
     </LinearLayout>
 
     <Button
         android:id="@+id/btn_login"
-        android:layout_marginTop="20dp"
         android:layout_width="match_parent"
-        android:gravity="center"
         android:layout_height="50dp"
         android:layout_marginLeft="10dp"
         android:layout_marginRight="10dp"
+        android:layout_marginTop="20dp"
         android:background="@drawable/et_solid_d43c3c_bg"
+        android:gravity="center"
+        android:text="登录"
         android:textColor="@color/colorefff"
-        android:textSize="20dp"
-        android:text="登录"/>
+        android:textSize="20dp" />
+
     <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="50dp">
+
         <TextView
             android:id="@+id/new_user_recest"
             android:layout_width="80dp"
             android:layout_height="40dp"
-            android:gravity="center"
             android:layout_alignParentLeft="true"
-            android:text="新用戶註冊"/>
+            android:gravity="center"
+            android:text="新用戶註冊" />
+
         <TextView
             android:id="@+id/user_find_password"
             android:layout_width="80dp"
             android:layout_height="40dp"
-            android:gravity="center"
             android:layout_alignParentRight="true"
             android:layout_gravity="left"
-            android:text="找回密码"/>
+            android:gravity="center"
+            android:text="找回密码" />
     </RelativeLayout>
 
 </LinearLayout>

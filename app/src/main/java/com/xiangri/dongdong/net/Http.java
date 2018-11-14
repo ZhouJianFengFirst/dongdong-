@@ -13,7 +13,7 @@ public class Http {
     public static final String JIU_URL=BASE_URL+"/product/getCatagory";
 
     //获取商品
-    public static final String SHOP_URL=BASE_URL+"/product/getCarts?uid=71";
+    public static final String SHOP_URL=BASE_URL+"/product/getCarts?uid=71&source=android";
 
     //获取子类商品
     public static final String SHOP_CHILD_URL=BASE_URL+"/product/getProductCatagory";
@@ -31,7 +31,8 @@ public class Http {
     public static final String ADD_SHOP_CAR_URL=BASE_URL+"/product/addCart";
     //删除商品
     public static final String DEL_SHOP_CAR_URL=BASE_URL+"/product/deleteCart";
-
+    //右面的商品
     public static final String RIGHT_URL = BASE_URL+"/product/getProductCatagory?cid=";
-
+    //查詢商品
+    public static final String SCAN_SHOP_URL = "/product/searchProducts";
 }

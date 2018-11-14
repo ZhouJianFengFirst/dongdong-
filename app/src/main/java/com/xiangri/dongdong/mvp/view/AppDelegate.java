@@ -12,16 +12,11 @@ import android.widget.Toast;
 import com.tapadoo.alerter.Alerter;
 import com.xiangri.dongdong.R;
 import com.xiangri.dongdong.net.BaseObserver;
-import com.xiangri.dongdong.net.HttpHelper;
-import com.xiangri.dongdong.net.HttpRequestListener;
 import com.xiangri.dongdong.net.RetrofitHelper;
 
 import java.io.IOException;
 import java.util.Map;
 
-import io.reactivex.Observer;
-import io.reactivex.disposables.Disposable;
-import okhttp3.RequestBody;
 import okhttp3.ResponseBody;
 
 public abstract class AppDelegate implements IDelegate {
@@ -59,16 +54,16 @@ public abstract class AppDelegate implements IDelegate {
 
             @Override
             public void onNext(ResponseBody responseBody) {
-                super.onNext(responseBody);
-                try {
-                    if (responseBody != null){
-                        String data = responseBody.string();
-                        successString(data,type);
-                    }else{
-                        failString("请求错误");
+                if (responseBody != null){
+                    String data = null;
+                    try {
+                        data = responseBody.string();
+                    } catch (IOException e) {
+                        e.printStackTrace();
                     }
-                } catch (IOException e) {
-                    e.printStackTrace();
+                    successString(data,type);
+                }else{
+                    failString("请求错误");
                 }
             }
 
@@ -88,16 +83,16 @@ public abstract class AppDelegate implements IDelegate {
 
             @Override
             public void onNext(ResponseBody responseBody) {
-                super.onNext(responseBody);
-                try {
-                    if (responseBody != null){
-                        String data = responseBody.string();
-                        successString(data,type);
-                    }else{
-                        failString("请求错误");
+                if (responseBody != null){
+                    String data = null;
+                    try {
+                        data = responseBody.string();
+                    } catch (IOException e) {
+                        e.printStackTrace();
                     }
-                } catch (IOException e) {
-                    e.printStackTrace();
+                    successString(data,type);
+                }else{
+                    failString("请求错误");
                 }
             }
 

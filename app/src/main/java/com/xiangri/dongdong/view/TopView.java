@@ -9,11 +9,12 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.xiangri.dongdong.R;
 
-public class TopView extends LinearLayout {
+public class TopView extends RelativeLayout {
     private View view;
     private TextView title;
     private TextView right;
@@ -53,18 +54,24 @@ public class TopView extends LinearLayout {
     private void setEvent() {
         title = (TextView) view.findViewById(R.id.txt_title);
         right = (TextView) view.findViewById(R.id.right_content);
-         back = (ImageView) view.findViewById(R.id.back);
+        back = (ImageView) view.findViewById(R.id.back);
         view.findViewById(R.id.back).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 ((AppCompatActivity) mContext).finish();
             }
         });
+        right.setOnClickListener(new OnClickListener() {
+            @Override
+            public void onClick(View v) {
+             listener.back();
+            }
+        });
         addView(view);
     }
 
     public void showLeft(boolean flag){
-        if (flag){
+        if (flag) {
             back.setVisibility(View.VISIBLE);
         }else{
             back.setVisibility(View.GONE);
@@ -73,9 +80,9 @@ public class TopView extends LinearLayout {
 
     public void showRight(boolean flag){
         if (flag){
-            back.setVisibility(View.VISIBLE);
+            right.setVisibility(View.VISIBLE);
         }else{
-            back.setVisibility(View.GONE);
+            right.setVisibility(View.GONE);
         }
     }
     public void setTitle(String msg) {
@@ -84,5 +91,16 @@ public class TopView extends LinearLayout {
 
     public void setRightContent(String msg) {
         right.setText(msg);
+    }
+
+
+    private BackListener listener;
+
+    public void setListener(BackListener listener) {
+        this.listener = listener;
+    }
+
+    public interface BackListener{
+        void back();
     }
 }

@@ -3,15 +3,12 @@ package com.xiangri.dongdong.perstener;
 import android.content.Context;
 import android.content.Intent;
 import android.text.TextUtils;
-import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.google.gson.Gson;
-import com.xiangri.dongdong.MainActivity;
 import com.xiangri.dongdong.R;
 import com.xiangri.dongdong.activity.LoginActivity;
 import com.xiangri.dongdong.activity.RegisterActivity;
@@ -20,14 +17,8 @@ import com.xiangri.dongdong.mvp.view.AppDelegate;
 import com.xiangri.dongdong.net.Http;
 import com.xiangri.dongdong.utils.SpUtil;
 
-import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
-
-import okhttp3.FormBody;
-import okhttp3.MediaType;
-import okhttp3.RequestBody;
-import okio.BufferedSink;
 
 public class LoginActivityPerstener extends AppDelegate implements View.OnClickListener {
 

@@ -61,6 +61,7 @@
                 android:background="#FF0000"
                 android:textColor="@color/colore8e8e8"
                 android:text="立即购买"/>
+
         </LinearLayout>
     </RelativeLayout>
 </RelativeLayout>

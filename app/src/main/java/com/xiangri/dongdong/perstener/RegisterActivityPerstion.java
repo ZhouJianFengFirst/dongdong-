@@ -2,26 +2,18 @@ package com.xiangri.dongdong.perstener;
 
 import android.content.Context;
 import android.text.TextUtils;
-import android.util.Log;
 import android.view.View;
-import android.widget.Button;
 import android.widget.EditText;
 
 import com.google.gson.Gson;
-import com.xiangri.dongdong.MainActivity;
 import com.xiangri.dongdong.R;
 import com.xiangri.dongdong.activity.RegisterActivity;
 import com.xiangri.dongdong.entity.RegisterBean;
-import com.xiangri.dongdong.entity.UserBean;
 import com.xiangri.dongdong.mvp.view.AppDelegate;
 import com.xiangri.dongdong.net.Http;
-import com.xiangri.dongdong.utils.SpUtil;
 
 import java.util.HashMap;
 import java.util.Map;
-
-import okhttp3.FormBody;
-import okhttp3.RequestBody;
 
 public class RegisterActivityPerstion extends AppDelegate implements View.OnClickListener {
 
