@@ -10,8 +10,8 @@ import java.util.List;
 
 public class JiuPageRecyAdapter extends RecycleAdapter<JiuDataBean>   {
 
-    public JiuPageRecyAdapter(Context mcontext, List<JiuDataBean> datas) {
-        super(mcontext, datas);
+    public JiuPageRecyAdapter(Context mcontext) {
+        super(mcontext);
     }
 
     @Override

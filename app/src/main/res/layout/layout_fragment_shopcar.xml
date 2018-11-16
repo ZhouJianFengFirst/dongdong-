@@ -25,14 +25,22 @@
         android:visibility="gone"
         android:text="完成"/>
 
+
     <android.support.v7.widget.RecyclerView
         android:id="@+id/recycar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_above="@id/all"
         android:layout_below="@id/topview"></android.support.v7.widget.RecyclerView>
-
-
+    <ImageView
+        android:id="@+id/image_notshop"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_above="@id/all"
+        android:layout_centerInParent="true"
+        android:layout_below="@id/topview"
+        android:visibility="gone"
+        android:src="@drawable/notshop"/>
     <RelativeLayout
         android:id="@+id/all"
         android:layout_width="match_parent"

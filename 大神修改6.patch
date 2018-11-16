@@ -1,0 +1,3285 @@
+Index: app/src/main/java/com/xiangri/dongdong/activity/MyMessageActivity.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- app/src/main/java/com/xiangri/dongdong/activity/MyMessageActivity.java	(revision 010f9bebd2a9915a40c7d2cba1b00b365b988952)
++++ app/src/main/java/com/xiangri/dongdong/activity/MyMessageActivity.java	(date 1541763622062)
+@@ -1,12 +1,156 @@
+ package com.xiangri.dongdong.activity;
+ 
++import android.content.Intent;
++import android.graphics.Bitmap;
++import android.graphics.BitmapFactory;
++import android.net.Uri;
++import android.os.Bundle;
++import android.os.Environment;
++import android.provider.MediaStore;
++import android.support.annotation.Nullable;
++import android.util.Log;
++
+ import com.xiangri.dongdong.mvp.persenter.BaseActivity;
++import com.xiangri.dongdong.net.BaseObserver;
++import com.xiangri.dongdong.net.RetrofitHelper;
+ import com.xiangri.dongdong.perstener.MyMessageActivityPerstener;
++import com.xiangri.dongdong.utils.SpUtil;
++
++import java.io.File;
++import java.io.FileNotFoundException;
++import java.io.FileOutputStream;
++import java.io.IOException;
++
++import okhttp3.ResponseBody;
+ 
+ public class MyMessageActivity extends BaseActivity<MyMessageActivityPerstener> {
+ 
++    private static final int CROP_REQUEST_CODE = 0x125;
++    private String path = "/sdcard/myHead/";
++    private String fileName;
++
+     @Override
+     public Class<MyMessageActivityPerstener> getDelegateClass() {
+         return MyMessageActivityPerstener.class;
+     }
++
++    @Override
++    protected void onResume() {
++        super.onResume();
++        Bitmap bitmap = BitmapFactory.decodeFile("/sdcard/myHead/head.jpg");
++        if (bitmap != null){
++            Uri uri = Uri.parse(MediaStore.Images.Media.insertImage(getContentResolver(), bitmap, null, null));
++            delegate.setSimplDrawView(uri);
++        }
++    }
++
++    @Override
++    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
++        super.onActivityResult(requestCode, resultCode, data);
++
++        switch (requestCode) {
++            case MyMessageActivityPerstener.CAMERA:
++                Uri uri0 = delegate.getUri();
++                cropPhoto(uri0);//裁剪图片
++                break;
++            case MyMessageActivityPerstener.PICK:
++                if (resultCode == RESULT_OK) {
++                    cropPhoto(data.getData());//裁剪图片
++                }
++                break;
++            case CROP_REQUEST_CODE:
++                if (data != null) {
++                    Bundle extras = data.getExtras();
++                    if (extras == null) {
++                        return;
++                    }
++                    Bitmap headBit = extras.getParcelable("data");
++                    Uri uri = Uri.parse(MediaStore.Images.Media.insertImage(getContentResolver(), headBit, null, null));
++                    delegate.setSimplDrawView(uri);
++                    if (headBit != null) {
++                        /**
++                         * 上传服务器代码
++                         */
++                        setPicToView(headBit);
++                        Log.d("Iiii",fileName);
++                        File file = new File(fileName);
++                        upLoad(file);/*上传到服务器*/
++                    }
++                }
++                break;
++        }
++    }
++
++
++    public void upLoad(File file) {
++        if (!file.exists()) {
++            try {
++                file.createNewFile();
++            } catch (IOException e) {
++                e.printStackTrace();
++            }
++        }
++
++        String uid = (String) SpUtil.getInserter(this).getSpData("uid", "");
++        Log.d("uid",uid);
++        BaseObserver<ResponseBody> ob = new BaseObserver<ResponseBody>() {
++            @Override
++            public void onNext(ResponseBody responseBody) {
++                try {
++                    Log.d("TagAAAAA", responseBody.string());
++                } catch (IOException e) {
++                    e.printStackTrace();
++                }
++            }
++
++            @Override
++            public void onError(Throwable e) {
++                Log.d("TagAAAAA", e.getMessage());
++            }
++        };
++        RetrofitHelper.getInstens().upLoad(file, uid, ob);
++    }
++
++    private void setPicToView(Bitmap mBitmap) {
++        String sdStatus = Environment.getExternalStorageState();
++        if (!sdStatus.equals(Environment.MEDIA_MOUNTED)) { // 检测sd是否可用
++            return;
++        }
++        FileOutputStream b = null;
++        File file = new File(path);
++        file.mkdirs();// 创建文件夹
++        fileName = path + "head.jpg";//图片名字
++        try {
++            b = new FileOutputStream(fileName);
++            mBitmap.compress(Bitmap.CompressFormat.JPEG, 100, b);// 把数据写入文件
++        } catch (FileNotFoundException e) {
++            e.printStackTrace();
++        } finally {
++            try {
++                //关闭流
++                b.flush();
++                b.close();
++            } catch (IOException e) {
++                e.printStackTrace();
++            }
++        }
++    }
++
++
++    public void cropPhoto(Uri uri) {
++        Log.i("cropPhoto",uri.getPath());
++        Intent intent = new Intent("com.android.camera.action.CROP");
++        intent.setDataAndType(uri, "image/*");
++        intent.putExtra("crop", "true");
++        // aspectX aspectY 是宽高的比例
++        intent.putExtra("aspectX", 1);
++        intent.putExtra("aspectY", 1);
++        // outputX outputY 是裁剪图片宽高
++        intent.putExtra("outputX", 127);
++        intent.putExtra("outputY", 127);
++        intent.putExtra("scale", true);
++        intent.putExtra("noFaceDetection", false);//不启用人脸识别
++        intent.putExtra("return-data", true);
++        startActivityForResult(intent, CROP_REQUEST_CODE);
++    }
+ }
+\ No newline at end of file
+Index: app/src/main/java/com/xiangri/dongdong/activity/SearchActivity.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- app/src/main/java/com/xiangri/dongdong/activity/SearchActivity.java	(date 1541742635721)
++++ app/src/main/java/com/xiangri/dongdong/activity/SearchActivity.java	(date 1541742635721)
+@@ -0,0 +1,16 @@
++package com.xiangri.dongdong.activity;
++
++import android.support.v7.app.AppCompatActivity;
++import android.os.Bundle;
++
++import com.xiangri.dongdong.R;
++import com.xiangri.dongdong.mvp.persenter.BaseActivity;
++import com.xiangri.dongdong.perstener.SearchActivityPersenter;
++
++public class SearchActivity extends BaseActivity<SearchActivityPersenter> {
++
++    @Override
++    public Class<SearchActivityPersenter> getDelegateClass() {
++        return SearchActivityPersenter.class;
++    }
++}
+\ No newline at end of file
+Index: app/src/main/java/com/xiangri/dongdong/activity/ShopListActivity.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- app/src/main/java/com/xiangri/dongdong/activity/ShopListActivity.java	(date 1541816758930)
++++ app/src/main/java/com/xiangri/dongdong/activity/ShopListActivity.java	(date 1541816758930)
+@@ -0,0 +1,11 @@
++package com.xiangri.dongdong.activity;
++
++import com.xiangri.dongdong.mvp.persenter.BaseActivity;
++import com.xiangri.dongdong.perstener.ShopListActivityPerstener;
++
++public class ShopListActivity extends BaseActivity<ShopListActivityPerstener> {
++    @Override
++    public Class<ShopListActivityPerstener> getDelegateClass() {
++        return ShopListActivityPerstener.class;
++    }
++}
+\ No newline at end of file
+Index: app/src/main/java/com/xiangri/dongdong/activity/ShowShopActivity.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- app/src/main/java/com/xiangri/dongdong/activity/ShowShopActivity.java	(revision 010f9bebd2a9915a40c7d2cba1b00b365b988952)
++++ app/src/main/java/com/xiangri/dongdong/activity/ShowShopActivity.java	(date 1541680435165)
+@@ -5,10 +5,8 @@
+ 
+ public class ShowShopActivity extends BaseActivity<ShowShopActivityPerstener> {
+ 
+-
+     @Override
+     public Class<ShowShopActivityPerstener> getDelegateClass() {
+         return ShowShopActivityPerstener.class;
+     }
+-
+ }
+Index: app/src/main/java/com/xiangri/dongdong/adapters/JiuPageAdapter.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- app/src/main/java/com/xiangri/dongdong/adapters/JiuPageAdapter.java	(revision 010f9bebd2a9915a40c7d2cba1b00b365b988952)
++++ app/src/main/java/com/xiangri/dongdong/adapters/JiuPageAdapter.java	(date 1542074736603)
+@@ -10,6 +10,7 @@
+ 
+ import com.xiangri.dongdong.R;
+ import com.xiangri.dongdong.entity.JiuBean;
++import com.xiangri.dongdong.entity.JiuDataBean;
+ 
+ import java.util.ArrayList;
+ import java.util.List;
+@@ -17,11 +18,11 @@
+ public class JiuPageAdapter extends PagerAdapter {
+ 
+     private Context mContext;
+-    private List<JiuBean.DataBean> onePage = new ArrayList<>();
+-    private List<JiuBean.DataBean> towPage = new ArrayList<>();
++    private List<JiuDataBean> onePage = new ArrayList<>();
++    private List<JiuDataBean> towPage = new ArrayList<>();
+     private int pagenum = 0;
+ 
+-    public JiuPageAdapter(Context mContext, List<JiuBean.DataBean> onPage, List<JiuBean.DataBean> towPage, int pagenum) {
++    public JiuPageAdapter(Context mContext, List<JiuDataBean> onPage, List<JiuDataBean> towPage, int pagenum) {
+         this.mContext = mContext;
+         this.onePage = onPage;
+         this.towPage = towPage;
+Index: app/src/main/java/com/xiangri/dongdong/adapters/JiuPageRecyAdapter.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- app/src/main/java/com/xiangri/dongdong/adapters/JiuPageRecyAdapter.java	(revision 010f9bebd2a9915a40c7d2cba1b00b365b988952)
++++ app/src/main/java/com/xiangri/dongdong/adapters/JiuPageRecyAdapter.java	(date 1542074825788)
+@@ -4,12 +4,13 @@
+ 
+ import com.xiangri.dongdong.R;
+ import com.xiangri.dongdong.entity.JiuBean;
++import com.xiangri.dongdong.entity.JiuDataBean;
+ 
+ import java.util.List;
+ 
+-public class JiuPageRecyAdapter extends RecycleAdapter<JiuBean.DataBean>   {
++public class JiuPageRecyAdapter extends RecycleAdapter<JiuDataBean>   {
+ 
+-    public JiuPageRecyAdapter(Context mcontext, List<JiuBean.DataBean> datas) {
++    public JiuPageRecyAdapter(Context mcontext, List<JiuDataBean> datas) {
+         super(mcontext, datas);
+     }
+ 
+@@ -19,12 +20,12 @@
+     }
+ 
+     @Override
+-    protected void convert(ViewHolder viewHolder, JiuBean.DataBean dataBean, int postion) {
++    protected void convert(ViewHolder viewHolder, JiuDataBean dataBean, int postion) {
+         viewHolder.setText(R.id.txt, dataBean.getName()).setImageUrl(R.id.gride_image, dataBean.getIcon());
+     }
+ 
+     @Override
+-    public void convertPrent(ViewHolder viewHolder, List<JiuBean.DataBean> t, int postion) {
++    public void convertPrent(ViewHolder viewHolder, List<JiuDataBean> t, int postion) {
+ 
+     }
+ }
+Index: app/src/main/java/com/xiangri/dongdong/adapters/LeftRecyAdapter.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- app/src/main/java/com/xiangri/dongdong/adapters/LeftRecyAdapter.java	(revision 010f9bebd2a9915a40c7d2cba1b00b365b988952)
++++ app/src/main/java/com/xiangri/dongdong/adapters/LeftRecyAdapter.java	(date 1542074825819)
+@@ -5,12 +5,13 @@
+ 
+ import com.xiangri.dongdong.R;
+ import com.xiangri.dongdong.entity.JiuBean;
++import com.xiangri.dongdong.entity.JiuDataBean;
+ 
+ import java.util.List;
+ 
+-public class LeftRecyAdapter extends RecycleAdapter<JiuBean.DataBean> {
++public class LeftRecyAdapter extends RecycleAdapter<JiuDataBean> {
+ 
+-    public LeftRecyAdapter(Context mcontext, List<JiuBean.DataBean> datas) {
++    public LeftRecyAdapter(Context mcontext, List<JiuDataBean> datas) {
+         super(mcontext, datas);
+     }
+ 
+@@ -21,7 +22,7 @@
+     }
+ 
+     @Override
+-    protected void convert(ViewHolder viewHolder, final JiuBean.DataBean dataBean, final int postion) {
++    protected void convert(ViewHolder viewHolder, final JiuDataBean dataBean, final int postion) {
+         viewHolder.setText(R.id.txt,dataBean.getName())
+         .setImageUrl(R.id.gride_image,dataBean.getIcon());
+         viewHolder.getRootView().setOnClickListener(new View.OnClickListener() {
+@@ -34,7 +35,7 @@
+     }
+ 
+     @Override
+-    public void convertPrent(ViewHolder viewHolder, List<JiuBean.DataBean> t, int postion) {
++    public void convertPrent(ViewHolder viewHolder, List<JiuDataBean> t, int postion) {
+ 
+     }
+ 
+Index: app/src/main/java/com/xiangri/dongdong/adapters/SearShopAdapter.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- app/src/main/java/com/xiangri/dongdong/adapters/SearShopAdapter.java	(date 1542093451822)
++++ app/src/main/java/com/xiangri/dongdong/adapters/SearShopAdapter.java	(date 1542093451822)
+@@ -0,0 +1,47 @@
++package com.xiangri.dongdong.adapters;
++
++import android.content.Context;
++import android.content.Intent;
++import android.view.View;
++import com.xiangri.dongdong.R;
++import com.xiangri.dongdong.activity.ShopListActivity;
++import com.xiangri.dongdong.activity.ShowShopActivity;
++import com.xiangri.dongdong.entity.SearShopBean;
++import java.util.List;
++
++public  class SearShopAdapter   extends RecycleAdapter<SearShopBean.DataBean>{
++
++    private Context mContext;
++
++    public SearShopAdapter(Context mcontext, List<SearShopBean.DataBean> datas) {
++        super(mcontext, datas);
++        this.mContext = mcontext;
++    }
++
++    @Override
++    protected int getLayoutId() {
++        return R.layout.layout_iteam_image;
++    }
++
++    @Override
++    protected void convert(ViewHolder viewHolder, final SearShopBean.DataBean dataBean, int postion) {
++        String[] split = dataBean.getImages().split("\\|");
++        viewHolder.setImageUrl(R.id.gride_image,split[0])
++                .setText(R.id.txt,dataBean.getTitle())
++                .setText(R.id.txt_price,"价格￥:"+dataBean.getPrice()+"");
++        viewHolder.getRootView().setOnClickListener(new View.OnClickListener() {
++            @Override
++            public void onClick(View v) {
++                Intent intent = new Intent(mContext, ShowShopActivity.class);
++                intent.putExtra("pid",dataBean.getPid()+"");
++                intent.putExtra("url",dataBean.getDetailUrl());
++                ((ShopListActivity)mContext).startActivity(intent);
++            }
++        });
++    }
++
++    @Override
++    public void convertPrent(ViewHolder viewHolder, List<SearShopBean.DataBean> t, int postion) {
++
++    }
++}
+\ No newline at end of file
+Index: app/src/main/java/com/xiangri/dongdong/adapters/ShopAdapter.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- app/src/main/java/com/xiangri/dongdong/adapters/ShopAdapter.java	(revision 010f9bebd2a9915a40c7d2cba1b00b365b988952)
++++ app/src/main/java/com/xiangri/dongdong/adapters/ShopAdapter.java	(date 1541768445760)
+@@ -34,7 +34,7 @@
+     protected void convert(com.xiangri.dongdong.adapters.ViewHolder viewHolder, final ShopBean.DataBean.ListBean listBean, int postion) {
+         i = postion;
+         String[] split = listBean.getImages().split("\\|");
+-        viewHolder.setImageUrl(R.id.gride_image, split[0]).setText(R.id.txt, listBean.getTitle());
++        viewHolder.setImageUrl(R.id.gride_image, split[0]).setText(R.id.txt, listBean.getTitle()).setText(R.id.txt_price,"￥"+listBean.getPrice()+"");
+         viewHolder.getRootView().setOnClickListener(new View.OnClickListener() {
+             @Override
+             public void onClick(View v) {
+Index: app/src/main/java/com/xiangri/dongdong/entity/HistoryEntity.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- app/src/main/java/com/xiangri/dongdong/entity/HistoryEntity.java	(date 1542075364779)
++++ app/src/main/java/com/xiangri/dongdong/entity/HistoryEntity.java	(date 1542075364779)
+@@ -0,0 +1,43 @@
++package com.xiangri.dongdong.entity;
++
++import org.greenrobot.greendao.annotation.Entity;
++import org.greenrobot.greendao.annotation.Id;
++import org.greenrobot.greendao.annotation.Generated;
++
++@Entity
++public class HistoryEntity   {
++    @Id(autoincrement = true)
++    private Long id;
++    private String history;
++    private String tpye;
++    @Generated(hash = 1210713338)
++    public HistoryEntity(Long id, String history, String tpye) {
++        this.id = id;
++        this.history = history;
++        this.tpye = tpye;
++    }
++    @Generated(hash = 1235354573)
++    public HistoryEntity() {
++    }
++    public Long getId() {
++        return this.id;
++    }
++    public void setId(Long id) {
++        this.id = id;
++    }
++    public String getHistory() {
++        return this.history;
++    }
++    public void setHistory(String history) {
++        this.history = history;
++    }
++    public String getTpye() {
++        return this.tpye;
++    }
++    public void setTpye(String tpye) {
++        this.tpye = tpye;
++    }
++
++   
++
++}
+Index: app/src/main/java/com/xiangri/dongdong/entity/JiuBean.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- app/src/main/java/com/xiangri/dongdong/entity/JiuBean.java	(revision 010f9bebd2a9915a40c7d2cba1b00b365b988952)
++++ app/src/main/java/com/xiangri/dongdong/entity/JiuBean.java	(date 1542074541415)
+@@ -1,5 +1,8 @@
+ package com.xiangri.dongdong.entity;
+ 
++import org.greenrobot.greendao.annotation.Entity;
++import org.greenrobot.greendao.annotation.Id;
++
+ import java.util.List;
+ 
+ public class JiuBean {
+@@ -12,7 +15,7 @@
+ 
+     private String msg;
+     private String code;
+-    private List<DataBean> data;
++    private List<JiuDataBean> data;
+ 
+     public String getMsg() {
+         return msg;
+@@ -30,67 +33,12 @@
+         this.code = code;
+     }
+ 
+-    public List<DataBean> getData() {
++    public List<JiuDataBean> getData() {
+         return data;
+     }
+ 
+-    public void setData(List<DataBean> data) {
++    public void setData(List<JiuDataBean> data) {
+         this.data = data;
+     }
+ 
+-    public static class DataBean {
+-        /**
+-         * cid : 1
+-         * createtime : 2017-10-10T19:41:39
+-         * icon : http://120.27.23.105/images/category/shop.png
+-         * ishome : 1
+-         * name : 京东超市
+-         */
+-
+-        private int cid;
+-        private String createtime;
+-        private String icon;
+-        private int ishome;
+-        private String name;
+-
+-        public int getCid() {
+-            return cid;
+-        }
+-
+-        public void setCid(int cid) {
+-            this.cid = cid;
+-        }
+-
+-        public String getCreatetime() {
+-            return createtime;
+-        }
+-
+-        public void setCreatetime(String createtime) {
+-            this.createtime = createtime;
+-        }
+-
+-        public String getIcon() {
+-            return icon;
+-        }
+-
+-        public void setIcon(String icon) {
+-            this.icon = icon;
+-        }
+-
+-        public int getIshome() {
+-            return ishome;
+-        }
+-
+-        public void setIshome(int ishome) {
+-            this.ishome = ishome;
+-        }
+-
+-        public String getName() {
+-            return name;
+-        }
+-
+-        public void setName(String name) {
+-            this.name = name;
+-        }
+-    }
+ }
+Index: app/src/main/java/com/xiangri/dongdong/entity/JiuDataBean.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- app/src/main/java/com/xiangri/dongdong/entity/JiuDataBean.java	(date 1542075448784)
++++ app/src/main/java/com/xiangri/dongdong/entity/JiuDataBean.java	(date 1542075448784)
+@@ -0,0 +1,57 @@
++package com.xiangri.dongdong.entity;
++
++public class JiuDataBean {
++    /**
++     * cid : 1
++     * createtime : 2017-10-10T19:41:39
++     * icon : http://120.27.23.105/images/category/shop.png
++     * ishome : 1
++     * name : 京东超市
++     */
++
++    private int cid;
++    private String createtime;
++    private String icon;
++    private int ishome;
++    private String name;
++
++    public int getCid() {
++        return cid;
++    }
++
++    public void setCid(int cid) {
++        this.cid = cid;
++    }
++
++    public String getCreatetime() {
++        return createtime;
++    }
++
++    public void setCreatetime(String createtime) {
++        this.createtime = createtime;
++    }
++
++    public String getIcon() {
++        return icon;
++    }
++
++    public void setIcon(String icon) {
++        this.icon = icon;
++    }
++
++    public int getIshome() {
++        return ishome;
++    }
++
++    public void setIshome(int ishome) {
++        this.ishome = ishome;
++    }
++
++    public String getName() {
++        return name;
++    }
++
++    public void setName(String name) {
++        this.name = name;
++    }
++}
+Index: app/src/main/java/com/xiangri/dongdong/entity/SearShopBean.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- app/src/main/java/com/xiangri/dongdong/entity/SearShopBean.java	(date 1541933423242)
++++ app/src/main/java/com/xiangri/dongdong/entity/SearShopBean.java	(date 1541933423242)
+@@ -0,0 +1,177 @@
++package com.xiangri.dongdong.entity;
++
++import java.util.List;
++
++public    class SearShopBean   {
++
++
++    /**
++     * msg : 查询成功
++     * code : 0
++     * data : [{"bargainPrice":3455,"createtime":"2017-10-14T21:38:26","detailUrl":"https://item.m.jd.com/product/12224420750.html?utm_source=androidapp&utm_medium=appshare&utm_campaign=t_335139774&utm_term=QQfriends","images":"https://m.360buyimg.com/n0/jfs/t9106/106/1785172479/537280/253bc0ab/59bf78a7N057e5ff7.jpg!q70.jpg|https://m.360buyimg.com/n0/jfs/t9106/106/1785172479/537280/253bc0ab/59bf78a7N057e5ff7.jpg!q70.jpg|https://m.360buyimg.com/n0/jfs/t8461/5/1492479653/68388/7255e013/59ba5e84N91091843.jpg!q70.jpg|https://m.360buyimg.com/n0/jfs/t8461/5/1492479653/68388/7255e013/59ba5e84N91091843.jpg!q70.jpg|https://m.360buyimg.com/n0/jfs/t8803/356/1478945529/489755/2a163ace/59ba5e84N7bb9a666.jpg!q70.jpg","itemtype":1,"pid":55,"price":5999,"pscid":39,"salenum":788,"sellerid":11,"subhead":"【现货新品抢购】全面屏2.0震撼来袭，骁龙835处理器，四曲面陶瓷机","title":"小米（MI） 小米MIX2 手机 黑色 全网通 (6GB+64GB)【标配版】"},{"bargainPrice":3455,"createtime":"2017-10-14T21:38:26","detailUrl":"https://item.m.jd.com/product/12224420750.html?utm_source=androidapp&utm_medium=appshare&utm_campaign=t_335139774&utm_term=QQfriends","images":"https://m.360buyimg.com/n0/jfs/t9106/106/1785172479/537280/253bc0ab/59bf78a7N057e5ff7.jpg!q70.jpg|https://m.360buyimg.com/n0/jfs/t9106/106/1785172479/537280/253bc0ab/59bf78a7N057e5ff7.jpg!q70.jpg|https://m.360buyimg.com/n0/jfs/t8461/5/1492479653/68388/7255e013/59ba5e84N91091843.jpg!q70.jpg|https://m.360buyimg.com/n0/jfs/t8461/5/1492479653/68388/7255e013/59ba5e84N91091843.jpg!q70.jpg|https://m.360buyimg.com/n0/jfs/t8803/356/1478945529/489755/2a163ace/59ba5e84N7bb9a666.jpg!q70.jpg","itemtype":1,"pid":56,"price":99,"pscid":39,"salenum":757,"sellerid":12,"subhead":"【现货新品抢购】全面屏2.0震撼来袭，骁龙835处理器，四曲面陶瓷机","title":"小米（MI） 小米MIX2 手机 黑色 全网通 (6GB+64GB)【标配版】"}]
++     * page : 2
++     */
++
++    private String msg;
++    private String code;
++    private String page;
++    private List<DataBean> data;
++
++    public String getMsg() {
++        return msg;
++    }
++
++    public void setMsg(String msg) {
++        this.msg = msg;
++    }
++
++    public String getCode() {
++        return code;
++    }
++
++    public void setCode(String code) {
++        this.code = code;
++    }
++
++    public String getPage() {
++        return page;
++    }
++
++    public void setPage(String page) {
++        this.page = page;
++    }
++
++    public List<DataBean> getData() {
++        return data;
++    }
++
++    public void setData(List<DataBean> data) {
++        this.data = data;
++    }
++
++    public static class DataBean {
++        /**
++         * bargainPrice : 3455
++         * createtime : 2017-10-14T21:38:26
++         * detailUrl : https://item.m.jd.com/product/12224420750.html?utm_source=androidapp&utm_medium=appshare&utm_campaign=t_335139774&utm_term=QQfriends
++         * images : https://m.360buyimg.com/n0/jfs/t9106/106/1785172479/537280/253bc0ab/59bf78a7N057e5ff7.jpg!q70.jpg|https://m.360buyimg.com/n0/jfs/t9106/106/1785172479/537280/253bc0ab/59bf78a7N057e5ff7.jpg!q70.jpg|https://m.360buyimg.com/n0/jfs/t8461/5/1492479653/68388/7255e013/59ba5e84N91091843.jpg!q70.jpg|https://m.360buyimg.com/n0/jfs/t8461/5/1492479653/68388/7255e013/59ba5e84N91091843.jpg!q70.jpg|https://m.360buyimg.com/n0/jfs/t8803/356/1478945529/489755/2a163ace/59ba5e84N7bb9a666.jpg!q70.jpg
++         * itemtype : 1
++         * pid : 55
++         * price : 5999
++         * pscid : 39
++         * salenum : 788
++         * sellerid : 11
++         * subhead : 【现货新品抢购】全面屏2.0震撼来袭，骁龙835处理器，四曲面陶瓷机
++         * title : 小米（MI） 小米MIX2 手机 黑色 全网通 (6GB+64GB)【标配版】
++         */
++
++        private double bargainPrice;
++        private String createtime;
++        private String detailUrl;
++        private String images;
++        private int itemtype;
++        private int pid;
++        private double price;
++        private int pscid;
++        private int salenum;
++        private int sellerid;
++        private String subhead;
++        private String title;
++
++        public double getBargainPrice() {
++            return bargainPrice;
++        }
++
++        public void setBargainPrice(double bargainPrice) {
++            this.bargainPrice = bargainPrice;
++        }
++
++        public String getCreatetime() {
++            return createtime;
++        }
++
++        public void setCreatetime(String createtime) {
++            this.createtime = createtime;
++        }
++
++        public String getDetailUrl() {
++            return detailUrl;
++        }
++
++        public void setDetailUrl(String detailUrl) {
++            this.detailUrl = detailUrl;
++        }
++
++        public String getImages() {
++            return images;
++        }
++
++        public void setImages(String images) {
++            this.images = images;
++        }
++
++        public int getItemtype() {
++            return itemtype;
++        }
++
++        public void setItemtype(int itemtype) {
++            this.itemtype = itemtype;
++        }
++
++        public int getPid() {
++            return pid;
++        }
++
++        public void setPid(int pid) {
++            this.pid = pid;
++        }
++
++        public double getPrice() {
++            return price;
++        }
++
++        public void setPrice(double price) {
++            this.price = price;
++        }
++
++        public int getPscid() {
++            return pscid;
++        }
++
++        public void setPscid(int pscid) {
++            this.pscid = pscid;
++        }
++
++        public int getSalenum() {
++            return salenum;
++        }
++
++        public void setSalenum(int salenum) {
++            this.salenum = salenum;
++        }
++
++        public int getSellerid() {
++            return sellerid;
++        }
++
++        public void setSellerid(int sellerid) {
++            this.sellerid = sellerid;
++        }
++
++        public String getSubhead() {
++            return subhead;
++        }
++
++        public void setSubhead(String subhead) {
++            this.subhead = subhead;
++        }
++
++        public String getTitle() {
++            return title;
++        }
++
++        public void setTitle(String title) {
++            this.title = title;
++        }
++    }
++}
+Index: app/src/main/java/com/xiangri/dongdong/mvp/view/AppDelegate.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- app/src/main/java/com/xiangri/dongdong/mvp/view/AppDelegate.java	(revision 010f9bebd2a9915a40c7d2cba1b00b365b988952)
++++ app/src/main/java/com/xiangri/dongdong/mvp/view/AppDelegate.java	(date 1541675778169)
+@@ -12,16 +12,11 @@
+ import com.tapadoo.alerter.Alerter;
+ import com.xiangri.dongdong.R;
+ import com.xiangri.dongdong.net.BaseObserver;
+-import com.xiangri.dongdong.net.HttpHelper;
+-import com.xiangri.dongdong.net.HttpRequestListener;
+ import com.xiangri.dongdong.net.RetrofitHelper;
+ 
+ import java.io.IOException;
+ import java.util.Map;
+ 
+-import io.reactivex.Observer;
+-import io.reactivex.disposables.Disposable;
+-import okhttp3.RequestBody;
+ import okhttp3.ResponseBody;
+ 
+ public abstract class AppDelegate implements IDelegate {
+@@ -59,16 +54,16 @@
+ 
+             @Override
+             public void onNext(ResponseBody responseBody) {
+-                super.onNext(responseBody);
+-                try {
+-                    if (responseBody != null){
+-                        String data = responseBody.string();
+-                        successString(data,type);
+-                    }else{
+-                        failString("请求错误");
+-                    }
+-                } catch (IOException e) {
+-                    e.printStackTrace();
++                if (responseBody != null){
++                    String data = null;
++                    try {
++                        data = responseBody.string();
++                    } catch (IOException e) {
++                        e.printStackTrace();
++                    }
++                    successString(data,type);
++                }else{
++                    failString("请求错误");
+                 }
+             }
+ 
+@@ -88,16 +83,16 @@
+ 
+             @Override
+             public void onNext(ResponseBody responseBody) {
+-                super.onNext(responseBody);
+-                try {
+-                    if (responseBody != null){
+-                        String data = responseBody.string();
+-                        successString(data,type);
+-                    }else{
+-                        failString("请求错误");
+-                    }
+-                } catch (IOException e) {
+-                    e.printStackTrace();
++                if (responseBody != null){
++                    String data = null;
++                    try {
++                        data = responseBody.string();
++                    } catch (IOException e) {
++                        e.printStackTrace();
++                    }
++                    successString(data,type);
++                }else{
++                    failString("请求错误");
+                 }
+             }
+ 
+Index: app/src/main/java/com/xiangri/dongdong/net/BaseObserver.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- app/src/main/java/com/xiangri/dongdong/net/BaseObserver.java	(revision 010f9bebd2a9915a40c7d2cba1b00b365b988952)
++++ app/src/main/java/com/xiangri/dongdong/net/BaseObserver.java	(date 1541675582474)
+@@ -10,9 +10,7 @@
+     }
+ 
+     @Override
+-    public void onNext(T t) {
+-
+-    }
++    public abstract void onNext(T t) ;
+ 
+     @Override
+     public abstract void onError(Throwable e);
+Index: app/src/main/java/com/xiangri/dongdong/net/BaseService.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- app/src/main/java/com/xiangri/dongdong/net/BaseService.java	(revision 010f9bebd2a9915a40c7d2cba1b00b365b988952)
++++ app/src/main/java/com/xiangri/dongdong/net/BaseService.java	(date 1541664356511)
+@@ -3,9 +3,12 @@
+ import java.util.Map;
+ 
+ import io.reactivex.Observable;
++import okhttp3.MultipartBody;
+ import okhttp3.ResponseBody;
+ import retrofit2.http.GET;
++import retrofit2.http.Multipart;
+ import retrofit2.http.POST;
++import retrofit2.http.Part;
+ import retrofit2.http.QueryMap;
+ import retrofit2.http.Url;
+ 
+@@ -16,4 +19,8 @@
+ 
+     @POST
+     Observable<ResponseBody> post(@Url String url, @QueryMap Map<String, String> map);
++
++    @Multipart
++    @POST("/file/upload")
++    Observable<ResponseBody> upload(@Part MultipartBody.Part part);
+ }
+Index: app/src/main/java/com/xiangri/dongdong/net/Http.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- app/src/main/java/com/xiangri/dongdong/net/Http.java	(revision 010f9bebd2a9915a40c7d2cba1b00b365b988952)
++++ app/src/main/java/com/xiangri/dongdong/net/Http.java	(date 1541921779598)
+@@ -13,7 +13,7 @@
+     public static final String JIU_URL=BASE_URL+"/product/getCatagory";
+ 
+     //获取商品
+-    public static final String SHOP_URL=BASE_URL+"/product/getCarts?uid=71";
++    public static final String SHOP_URL=BASE_URL+"/product/getCarts?uid=71&source=android";
+ 
+     //获取子类商品
+     public static final String SHOP_CHILD_URL=BASE_URL+"/product/getProductCatagory";
+@@ -31,7 +31,8 @@
+     public static final String ADD_SHOP_CAR_URL=BASE_URL+"/product/addCart";
+     //删除商品
+     public static final String DEL_SHOP_CAR_URL=BASE_URL+"/product/deleteCart";
+-
++    //右面的商品
+     public static final String RIGHT_URL = BASE_URL+"/product/getProductCatagory?cid=";
+-
++    //查詢商品
++    public static final String SCAN_SHOP_URL = "/product/searchProducts";
+ }
+\ No newline at end of file
+Index: app/src/main/java/com/xiangri/dongdong/net/HttpHelper.java
+===================================================================
+--- app/src/main/java/com/xiangri/dongdong/net/HttpHelper.java	(revision 010f9bebd2a9915a40c7d2cba1b00b365b988952)
++++ app/src/main/java/com/xiangri/dongdong/net/HttpHelper.java	(revision 010f9bebd2a9915a40c7d2cba1b00b365b988952)
+@@ -1,92 +0,0 @@
+-package com.xiangri.dongdong.net;
+-
+-import android.os.Handler;
+-import android.os.Message;
+-import android.util.Log;
+-
+-import com.google.common.io.CharStreams;
+-
+-import java.io.IOException;
+-import java.io.InputStream;
+-import java.io.InputStreamReader;
+-
+-import okhttp3.Call;
+-import okhttp3.Callback;
+-import okhttp3.Interceptor;
+-import okhttp3.OkHttpClient;
+-import okhttp3.Request;
+-import okhttp3.RequestBody;
+-import okhttp3.Response;
+-
+-public class HttpHelper {
+-
+-    private HttpRequestListener listener;
+-    private static final int SUCCESS_REQUEST = 1;
+-    private static final int FAIL_REQUEST = 0;
+-
+-    public void setListener(HttpRequestListener listener) {
+-        this.listener = listener;
+-    }
+-
+-    public HttpHelper doGet(String url) {
+-        OkHttpClient okHttpClient = new OkHttpClient.Builder().addInterceptor(new Interceptor() {
+-            @Override
+-            public Response intercept(Chain chain) throws IOException {
+-                Request request = chain.request();
+-
+-                return chain.proceed(request);
+-            }
+-        }).build();
+-        Request request = new Request.Builder().get().url(url).build();
+-        doHttp(okHttpClient, request);
+-        return this;
+-    }
+-
+-    public HttpHelper doPost(String url, RequestBody body) {
+-        OkHttpClient okHttpClient = new OkHttpClient();
+-        Request request = new Request.Builder().post(body).url(url).build();
+-        doHttp(okHttpClient, request);
+-        return this;
+-    }
+-
+-    private void doHttp(OkHttpClient okHttpClient, final Request request) {
+-
+-        final Message msg = Message.obtain();
+-        okHttpClient.newCall(request).enqueue(new Callback() {
+-            @Override
+-            public void onFailure(Call call, IOException e) {
+-                Log.d("TAG", "失败");
+-                msg.what = FAIL_REQUEST;
+-                msg.obj = e.getMessage();
+-                handler.sendMessage(msg);
+-            }
+-
+-            @Override
+-            public void onResponse(Call call, Response response) throws IOException {
+-                if (response.isSuccessful()) {
+-                    String data = response.body().string();
+-                    msg.what = SUCCESS_REQUEST;
+-                    msg.obj = data;
+-                    handler.sendMessage(msg);
+-                }
+-            }
+-        });
+-    }
+-
+-    private final Handler handler = new Handler() {
+-        @Override
+-        public void handleMessage(Message msg) {
+-            super.handleMessage(msg);
+-            switch (msg.what) {
+-                case SUCCESS_REQUEST:
+-                    String data = (String) msg.obj;
+-                    listener.successRequest(data);
+-                    break;
+-                case FAIL_REQUEST:
+-                    String mess = (String) msg.obj;
+-                    listener.fail(mess);
+-                    break;
+-            }
+-        }
+-    };
+-}
+Index: app/src/main/java/com/xiangri/dongdong/net/HttpRequestListener.java
+===================================================================
+--- app/src/main/java/com/xiangri/dongdong/net/HttpRequestListener.java	(revision 010f9bebd2a9915a40c7d2cba1b00b365b988952)
++++ app/src/main/java/com/xiangri/dongdong/net/HttpRequestListener.java	(revision 010f9bebd2a9915a40c7d2cba1b00b365b988952)
+@@ -1,7 +0,0 @@
+-package com.xiangri.dongdong.net;
+-
+-public interface HttpRequestListener {
+-    void successRequest(String data);
+-
+-    void fail(String msg);
+-}
+\ No newline at end of file
+Index: app/src/main/java/com/xiangri/dongdong/net/RetrofitHelper.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- app/src/main/java/com/xiangri/dongdong/net/RetrofitHelper.java	(revision 010f9bebd2a9915a40c7d2cba1b00b365b988952)
++++ app/src/main/java/com/xiangri/dongdong/net/RetrofitHelper.java	(date 1541679870625)
+@@ -1,11 +1,21 @@
+ package com.xiangri.dongdong.net;
+ 
++import android.content.Context;
++import android.os.Environment;
++import android.widget.Toast;
++
++import java.io.File;
++import java.io.IOException;
+ import java.util.HashMap;
+ import java.util.Map;
+ 
++import io.reactivex.Observable;
+ import io.reactivex.Observer;
+ import io.reactivex.android.schedulers.AndroidSchedulers;
+ import io.reactivex.schedulers.Schedulers;
++import okhttp3.MediaType;
++import okhttp3.MultipartBody;
++import okhttp3.RequestBody;
+ import retrofit2.Retrofit;
+ import retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory;
+ import retrofit2.converter.gson.GsonConverterFactory;
+@@ -14,6 +24,7 @@
+ 
+     private static RetrofitHelper retrofitHelper;
+     private Retrofit retrofit;
++    private Context mCotext;
+ 
+     private RetrofitHelper() {
+ 
+@@ -28,7 +39,8 @@
+         return retrofitHelper;
+     }
+ 
+-    public void init(String baseUrl) {
++    public void init(String baseUrl, Context context) {
++        this.mCotext = context;
+         retrofit = new Retrofit.Builder()
+                 .baseUrl(baseUrl)
+                 .addConverterFactory(GsonConverterFactory.create())
+@@ -46,6 +58,7 @@
+                 .observeOn(AndroidSchedulers.mainThread())
+                 .subscribe(ob);
+     }
++
+     public void doPost(String url, Map<String, String> map, Observer ob) {
+         if (map == null) {
+             map = new HashMap<>();
+@@ -56,4 +69,25 @@
+                 .observeOn(AndroidSchedulers.mainThread())
+                 .subscribe(ob);
+     }
++
++    public void upLoad(File file, String uid, Observer ob) {
++
++        if (!Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED)) {
++            Toast.makeText(mCotext, "sd卡未挂载", Toast.LENGTH_SHORT).show();
++            return;
++        }
++
++        MediaType mediaType = MediaType.parse("multipart/form-data;charset=utf-8");
++        RequestBody requestBody = new MultipartBody.Builder()
++                .setType(mediaType)
++                .addFormDataPart("file", "head.jpg", RequestBody.create(MediaType.parse("image/jpg"), file))
++                .addFormDataPart("uid", uid)
++                .build();
++        MultipartBody.Part part = MultipartBody.Part.create(requestBody);
++        BaseService baseService = retrofit.create(BaseService.class);
++        baseService.upload(part)
++                .subscribeOn(Schedulers.io())
++                .observeOn(AndroidSchedulers.mainThread())
++                .subscribe(ob);
++    }
+ }
+Index: app/src/main/java/com/xiangri/dongdong/perstener/FragmentHomePersenter.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- app/src/main/java/com/xiangri/dongdong/perstener/FragmentHomePersenter.java	(revision 010f9bebd2a9915a40c7d2cba1b00b365b988952)
++++ app/src/main/java/com/xiangri/dongdong/perstener/FragmentHomePersenter.java	(date 1542091768537)
+@@ -17,13 +17,16 @@
+ import com.google.gson.Gson;
+ import com.xiangri.dongdong.MainActivity;
+ import com.xiangri.dongdong.R;
++import com.xiangri.dongdong.activity.SearchActivity;
+ import com.xiangri.dongdong.adapters.JiuPageAdapter;
+ import com.xiangri.dongdong.adapters.ListAdapter;
+ import com.xiangri.dongdong.entity.BannerBean;
+ import com.xiangri.dongdong.entity.JiuBean;
++import com.xiangri.dongdong.entity.JiuDataBean;
+ import com.xiangri.dongdong.entity.ShopBean;
+ import com.xiangri.dongdong.mvp.view.AppDelegate;
+ import com.xiangri.dongdong.net.Http;
++import com.xiangri.dongdong.utils.SpUtil;
+ import com.xiangri.dongdong.view.HorseView;
+ import com.yzq.zxinglibrary.android.CaptureActivity;
+ import com.yzq.zxinglibrary.android.PermissionUtils;
+@@ -47,8 +50,8 @@
+     private List<String> images = new ArrayList<>();
+     private List<String> titles = new ArrayList<>();
+     private ViewPager viewPager;
+-    private List<JiuBean.DataBean> onePage = new ArrayList<>();
+-    private List<JiuBean.DataBean> towPage = new ArrayList<>();
++    private List<JiuDataBean> onePage = new ArrayList<>();
++    private List<JiuDataBean> towPage = new ArrayList<>();
+     private ViewPager viewpage;
+     private LinearLayout childLinear;
+     private XListView xlistview;
+@@ -71,18 +74,11 @@
+     @Override
+     public void initData() {
+         super.initData();
+-
+-        //设定事件
++        //初始化数据
+         setEvent();
+ 
+-        //设定banner图进行网络请求
+-        getString(Http.BANNER_URL, BANNER_REQUEST,null);
+-
+-        //设定9宫格的网络请求
+-        getString(Http.JIU_URL, JIU_REQUEST,null);
+-
+-        //设定列表进行网络请求
+-        getString(Http.SHOP_URL, SHOP_REQUEST,null);
++        //网络请求
++        doHttp();
+     }
+ 
+     private void setEvent() {
+@@ -114,19 +110,12 @@
+         xlistview.setXListViewListener(new XListView.IXListViewListener() {
+             @Override
+             public void onRefresh() {
+-                //设定banner图进行网络请求
+-                getString(Http.BANNER_URL, BANNER_REQUEST,null);
+-
+-                //设定9宫格的网络请求
+-                getString(Http.JIU_URL, JIU_REQUEST,null);
+-
+-                //设定列表进行网络请求
+-                getString(Http.SHOP_URL, SHOP_REQUEST,null);
++                doHttp();
+             }
+ 
+             @Override
+             public void onLoadMore() {
+-
++                doHttp();
+             }
+         });
+         //初始化适配器
+@@ -137,6 +126,7 @@
+         //添加头部
+         xlistview.addHeaderView(view);
+         scan.setOnClickListener(this);
++        getView(R.id.et_sou).setOnClickListener(this);
+         message.setOnClickListener(this);
+         xlistview.setOnScrollListener(new AbsListView.OnScrollListener() {
+             @Override
+@@ -158,6 +148,12 @@
+         });
+     }
+ 
++    @Override
++    public void failString(String msg) {
++        super.failString(msg);
++        toast(msg);
++    }
++
+     @Override
+     public void successString(String data, int type) {
+         super.successString(data, type);
+@@ -169,13 +165,26 @@
+                 setViewPageAdapter(data);
+                 break;
+             case SHOP_REQUEST:
+-                Gson gson = new Gson();
+-                ShopBean shopBean = gson.fromJson(data, ShopBean.class);
+-                listAdapter.setShopList(shopBean.getData());
++                if (data.contains(">")){
++                    getString(Http.SHOP_URL, SHOP_REQUEST,null);
++                    return;
++                }
++                if (data != null){
++                    Gson gson = new Gson();
++                    ShopBean shopBean = gson.fromJson(data, ShopBean.class);
++                    List<ShopBean.DataBean> data1 = shopBean.getData();
++                    data1.remove(0);
++                    listAdapter.setShopList(data1);
++                }
+                 break;
+         }
+     }
+ 
++
++    /**
++     * 设置page轮播图
++     * @param data
++     */
+     private void setViewPageAdapter(String data) {
+         if (data.contains(">")) {
+             return;
+@@ -190,14 +199,17 @@
+                 onePage.add(jiuBean.getData().get(i));
+             }
+         }
+-        //设置跑马灯的数据
+-        List<String> titles = new ArrayList<>();
+-        List<String> images = new ArrayList<>();
+-        for (int i = 0; i < jiuBean.getData().size(); i++) {
+-            titles.add(jiuBean.getData().get(i).getName());
+-            images.add(jiuBean.getData().get(i).getIcon());
+-        }
+-        horseview.setData(titles, images);
++        Log.d("Taggg",">>>>>>>");
++        if(jiuBean != null){
++            //设置跑马灯的数据
++            List<String> titles = new ArrayList<>();
++            List<String> images = new ArrayList<>();
++            for (int i = 0; i < jiuBean.getData().size(); i++) {
++//                titles.add(jiuBean.getData().get(i).getName());
++//                images.add(jiuBean.getData().get(i).getIcon());
++            }
++            horseview.setData(titles, images);
++        }
+         JiuPageAdapter jiuPageAdapter = new JiuPageAdapter(mContext, onePage, towPage, 2);
+         viewpage.setAdapter(jiuPageAdapter);
+     }
+@@ -238,6 +250,20 @@
+                 break;
+             case R.id.message:
+                 break;
++            case R.id.et_sou:
++                ((MainActivity) mContext).startActivityForResult(new Intent(mContext, SearchActivity.class), START_ACTIVITY);
++                break;
+         }
+     }
++
++    public void doHttp(){
++        //设定banner图进行网络请求
++        getString(Http.BANNER_URL, BANNER_REQUEST,null);
++
++        //设定9宫格的网络请求
++        getString(Http.JIU_URL, JIU_REQUEST,null);
++
++        //设定列表进行网络请求
++        getString(Http.SHOP_URL, SHOP_REQUEST,null);
++    }
+ }
+\ No newline at end of file
+Index: app/src/main/java/com/xiangri/dongdong/perstener/FragmentMePersenter.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- app/src/main/java/com/xiangri/dongdong/perstener/FragmentMePersenter.java	(revision 010f9bebd2a9915a40c7d2cba1b00b365b988952)
++++ app/src/main/java/com/xiangri/dongdong/perstener/FragmentMePersenter.java	(date 1541729721913)
+@@ -2,6 +2,8 @@
+ 
+ import android.content.Context;
+ import android.content.Intent;
++import android.graphics.BitmapFactory;
++import android.os.Environment;
+ import android.support.v7.widget.LinearLayoutManager;
+ import android.support.v7.widget.RecyclerView;
+ import android.view.View;
+@@ -50,6 +52,7 @@
+         setEvent();
+         //设置adapter
+         setAdapter();
++
+     }
+ 
+     private void setAdapter() {
+@@ -98,5 +101,6 @@
+ 
+     public void setUserMessage(String username) {
+         showUser.setText(username);
++        userImage.setImageBitmap(BitmapFactory.decodeFile("/sdcard/myHead/head.jpg"));
+     }
+ }
+\ No newline at end of file
+Index: app/src/main/java/com/xiangri/dongdong/perstener/FragmentShopCarPersenter.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- app/src/main/java/com/xiangri/dongdong/perstener/FragmentShopCarPersenter.java	(revision 010f9bebd2a9915a40c7d2cba1b00b365b988952)
++++ app/src/main/java/com/xiangri/dongdong/perstener/FragmentShopCarPersenter.java	(date 1541921890354)
+@@ -53,7 +53,7 @@
+         }
+         String uid = (String) SpUtil.getInserter(mContext).getSpData("uid","-1");
+         //设置列表的网络数据
+-        getString(Http.GET_SHOP_CAR_URL + "?uid="+uid+"", CAR_LIST_REQUEST,null);
++        getString(Http.GET_SHOP_CAR_URL + "?uid="+uid+"&source=android", CAR_LIST_REQUEST,null);
+     }
+ 
+     private void setEvent() {
+Index: app/src/main/java/com/xiangri/dongdong/perstener/LoginActivityPerstener.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- app/src/main/java/com/xiangri/dongdong/perstener/LoginActivityPerstener.java	(revision 010f9bebd2a9915a40c7d2cba1b00b365b988952)
++++ app/src/main/java/com/xiangri/dongdong/perstener/LoginActivityPerstener.java	(date 1541815494236)
+@@ -3,15 +3,12 @@
+ import android.content.Context;
+ import android.content.Intent;
+ import android.text.TextUtils;
+-import android.util.Log;
+ import android.view.View;
+ import android.widget.Button;
+ import android.widget.EditText;
+-import android.widget.RelativeLayout;
+ import android.widget.TextView;
+ 
+ import com.google.gson.Gson;
+-import com.xiangri.dongdong.MainActivity;
+ import com.xiangri.dongdong.R;
+ import com.xiangri.dongdong.activity.LoginActivity;
+ import com.xiangri.dongdong.activity.RegisterActivity;
+@@ -20,15 +17,9 @@
+ import com.xiangri.dongdong.net.Http;
+ import com.xiangri.dongdong.utils.SpUtil;
+ 
+-import java.io.IOException;
+ import java.util.HashMap;
+ import java.util.Map;
+ 
+-import okhttp3.FormBody;
+-import okhttp3.MediaType;
+-import okhttp3.RequestBody;
+-import okio.BufferedSink;
+-
+ public class LoginActivityPerstener extends AppDelegate implements View.OnClickListener {
+ 
+     private static final int USER_LOGIN = 1;
+Index: app/src/main/java/com/xiangri/dongdong/perstener/MyMessageActivityPerstener.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- app/src/main/java/com/xiangri/dongdong/perstener/MyMessageActivityPerstener.java	(revision 010f9bebd2a9915a40c7d2cba1b00b365b988952)
++++ app/src/main/java/com/xiangri/dongdong/perstener/MyMessageActivityPerstener.java	(date 1541815493966)
+@@ -1,16 +1,32 @@
+ package com.xiangri.dongdong.perstener;
+ 
+ import android.content.Context;
++import android.content.DialogInterface;
++import android.content.Intent;
++import android.net.Uri;
++import android.os.Environment;
++import android.provider.MediaStore;
++import android.support.v7.app.AlertDialog;
+ import android.view.View;
++import android.widget.Toast;
+ 
+ import com.facebook.drawee.view.SimpleDraweeView;
+ import com.xiangri.dongdong.R;
++import com.xiangri.dongdong.activity.MyMessageActivity;
+ import com.xiangri.dongdong.mvp.view.AppDelegate;
++import com.xiangri.dongdong.utils.PermissionUtils;
++
++import java.io.File;
+ 
+-public class MyMessageActivityPerstener extends AppDelegate implements View.OnClickListener{
++public class MyMessageActivityPerstener extends AppDelegate implements View.OnClickListener {
+ 
+     private Context mContext;
+     private SimpleDraweeView userSimpView;
++    private String[] contents = {"相机", "相册"};
++    private File rootSD;
++    private Uri uri;
++    public static final int CAMERA = 0x123;
++    public static final int PICK = 0x124;
+ 
+     @Override
+     public void initContext(Context context) {
+@@ -25,13 +41,13 @@
+         //设置事件
+         setEvent();
+         //设置点击事件
+-        setClick(this,R.id.user_up_tioimage,R.id.user_vip,R.id.user_sex,R.id.user_address);
++        setClick(this, R.id.user_up_tioimage, R.id.user_vip, R.id.user_sex, R.id.user_address);
+     }
+ 
+     private void setEvent() {
+-        userSimpView =  (SimpleDraweeView) getView(R.id.litter_user_image);
++        userSimpView = (SimpleDraweeView) getView(R.id.litter_user_image);
+         userSimpView.setImageResource(R.drawable.login);
+-        setClick(this,R.id.litter_user_image);
++        setClick(this, R.id.user_up_tioimage);
+     }
+ 
+     @Override
+@@ -41,10 +57,59 @@
+ 
+     @Override
+     public void onClick(View v) {
+-        switch (v.getId()){
+-            case R.id.litter_user_image:
++        switch (v.getId()) {
++            case R.id.user_up_tioimage:
++                ShowBar();
++                break;
++        }
++    }
++
++    private void ShowBar() {
+ 
+-                break;
+-        }
++        if (!Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED)) {
++            Toast.makeText(mContext, "sd卡未挂载", Toast.LENGTH_SHORT).show();
++            return;
++        }
++
++        rootSD = Environment.getExternalStorageDirectory();
++
++        AlertDialog dialog = new AlertDialog.Builder(mContext)
++                .setTitle("请选择相机")
++                .setIcon(R.drawable.login)
++                .setItems(contents, new DialogInterface.OnClickListener() {
++                    @Override
++                    public void onClick(DialogInterface dialog, final int which) {
++                        PermissionUtils.permission(mContext,new PermissionUtils.PermissionListener() {
++                            @Override
++                            public void success() {
++                                switch (which) {
++                                    case 0:
++                                        Intent intentCapture = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
++                                        File imagePath = new File(rootSD, "head.jpg");
++                                        uri = Uri.fromFile(imagePath);
++                                        intentCapture.putExtra(MediaStore.EXTRA_OUTPUT, uri);
++                                        ((MyMessageActivity) mContext).startActivityForResult(intentCapture, CAMERA);
++                                        break;
++                                    case 1:
++                                        Intent intentPick = new Intent(Intent.ACTION_PICK);
++                                        intentPick.setType("image/*");
++                                        ((MyMessageActivity) mContext).startActivityForResult(intentPick, PICK);
++                                        break;
++                                }
++                            }
++                        });
++
++                    }
++                })
++                .create();
++        dialog.show();
+     }
++
++    public void setSimplDrawView(Uri uri) {
++        userSimpView.setImageURI(uri);
++    }
++
++    public Uri getUri() {
++        return uri;
++    }
+ }
+\ No newline at end of file
+Index: app/src/main/java/com/xiangri/dongdong/perstener/RegisterActivityPerstion.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- app/src/main/java/com/xiangri/dongdong/perstener/RegisterActivityPerstion.java	(revision 010f9bebd2a9915a40c7d2cba1b00b365b988952)
++++ app/src/main/java/com/xiangri/dongdong/perstener/RegisterActivityPerstion.java	(date 1541815494013)
+@@ -2,27 +2,19 @@
+ 
+ import android.content.Context;
+ import android.text.TextUtils;
+-import android.util.Log;
+ import android.view.View;
+-import android.widget.Button;
+ import android.widget.EditText;
+ 
+ import com.google.gson.Gson;
+-import com.xiangri.dongdong.MainActivity;
+ import com.xiangri.dongdong.R;
+ import com.xiangri.dongdong.activity.RegisterActivity;
+ import com.xiangri.dongdong.entity.RegisterBean;
+-import com.xiangri.dongdong.entity.UserBean;
+ import com.xiangri.dongdong.mvp.view.AppDelegate;
+ import com.xiangri.dongdong.net.Http;
+-import com.xiangri.dongdong.utils.SpUtil;
+ 
+ import java.util.HashMap;
+ import java.util.Map;
+ 
+-import okhttp3.FormBody;
+-import okhttp3.RequestBody;
+-
+ public class RegisterActivityPerstion extends AppDelegate implements View.OnClickListener {
+ 
+     private static final int REGISTER_CONTENT = 1;
+Index: app/src/main/java/com/xiangri/dongdong/perstener/SearchActivityPersenter.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- app/src/main/java/com/xiangri/dongdong/perstener/SearchActivityPersenter.java	(date 1542105597572)
++++ app/src/main/java/com/xiangri/dongdong/perstener/SearchActivityPersenter.java	(date 1542105597572)
+@@ -0,0 +1,96 @@
++package com.xiangri.dongdong.perstener;
++
++import android.content.Context;
++import android.content.Intent;
++import android.view.View;
++import android.widget.EditText;
++import android.widget.TextView;
++
++import com.xiangri.dongdong.R;
++import com.xiangri.dongdong.activity.SearchActivity;
++import com.xiangri.dongdong.activity.ShopListActivity;
++import com.xiangri.dongdong.entity.HistoryEntity;
++import com.xiangri.dongdong.mvp.view.AppDelegate;
++import com.xiangri.dongdong.sql.SqlUtil;
++import com.xiangri.dongdong.view.SelfView;
++
++import java.util.ArrayList;
++import java.util.List;
++
++public class SearchActivityPersenter extends AppDelegate implements View.OnClickListener {
++
++    private Context mContext;
++    private EditText edPut;
++    private TextView txtAll;
++    private TextView txtShop;
++    private SelfView self;
++    private TextView txtSerch;
++    @Override
++    public void initData() {
++        super.initData();
++
++        //初始化控件
++        initWeght();
++        List<HistoryEntity> historyEntities = SqlUtil.getInstens().queryAll();
++        self.setData(historyEntities);
++    }
++
++    private void initWeght() {
++        edPut = (EditText) getView(R.id.et_input);
++        txtSerch = (TextView) getView(R.id.txt_serch);
++        self = (SelfView) getView(R.id.self);
++        setClick(this, R.id.iv_back);
++        txtSerch.setOnClickListener(this);
++    }
++
++    @Override
++    public void initContext(Context context) {
++        super.initContext(context);
++        this.mContext = context;
++    }
++
++    @Override
++    protected int getLayoutId() {
++        return R.layout.activity_search;
++    }
++
++    @Override
++    public void onClick(View v) {
++        switch (v.getId()) {
++            case R.id.txt_serch:
++                String trim = edPut.getText().toString().trim();
++                serchShop(trim);
++                break;
++            case R.id.iv_back:
++                ((SearchActivity) mContext).finish();
++                break;
++        }
++    }
++
++    private void serchShop(String trim) {
++        if ("".equals(trim.trim()) || trim == null){
++            return;
++        }
++        //判断如果有重复的进行删除
++        List<HistoryEntity> quer = SqlUtil.getInstens().queryAll();
++        for (int i = 0 ; i <quer.size() ; i ++){
++            if (quer.get(i).getHistory().equals(trim)){
++                SqlUtil.getInstens().deleteByKey(quer.get(i).getId());
++            }
++        }
++        //添加数据
++        SqlUtil.getInstens().insert("search",trim);
++
++        //查询数据
++        List<HistoryEntity> historyEntities = SqlUtil.getInstens().queryAll();
++        //判断20条之后自动清空
++        if (historyEntities.size() == 20) {
++            SqlUtil.getInstens().deleteAll();
++        }
++        self.setData(historyEntities);
++        Intent intent = new Intent(mContext, ShopListActivity.class);
++        intent.putExtra("keywords", trim);
++        ((SearchActivity) mContext).finish();
++        ((SearchActivity) mContext).startActivity(intent);
++    }
++}
+\ No newline at end of file
+Index: app/src/main/java/com/xiangri/dongdong/perstener/ShopListActivityPerstener.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- app/src/main/java/com/xiangri/dongdong/perstener/ShopListActivityPerstener.java	(date 1542091768414)
++++ app/src/main/java/com/xiangri/dongdong/perstener/ShopListActivityPerstener.java	(date 1542091768414)
+@@ -0,0 +1,134 @@
++package com.xiangri.dongdong.perstener;
++
++import android.content.Context;
++import android.content.Intent;
++import android.support.v7.widget.StaggeredGridLayoutManager;
++import android.util.Log;
++import android.view.View;
++import android.widget.ImageView;
++import android.widget.TextView;
++
++import com.google.gson.Gson;
++import com.jcodecraeer.xrecyclerview.XRecyclerView;
++import com.xiangri.dongdong.R;
++import com.xiangri.dongdong.activity.SearchActivity;
++import com.xiangri.dongdong.activity.ShopListActivity;
++import com.xiangri.dongdong.adapters.SearShopAdapter;
++import com.xiangri.dongdong.entity.SearShopBean;
++import com.xiangri.dongdong.mvp.view.AppDelegate;
++import com.xiangri.dongdong.net.Http;
++
++import java.util.HashMap;
++import java.util.Map;
++
++public class ShopListActivityPerstener extends AppDelegate implements View.OnClickListener {
++
++    private Context mContext;
++    private int page = 1;
++    private static final int SHOP_CONTENT = 0x123;
++    private TextView txtInput,txtShop,txtShopHome;
++    private ImageView cameraImage ;
++    private XRecyclerView shopList;
++    private String keywords;
++    private SearShopBean searShopBean;
++
++    @Override
++    public void initData() {
++        super.initData();
++        Intent intent = ((ShopListActivity) mContext).getIntent();
++        keywords = intent.getStringExtra("keywords");
++        Map<String, String> map = new HashMap<>();
++        map.put("keywords", keywords);
++        map.put("page", page+"");
++        map.put("source", "android");
++        //初始化控件
++        initWeght();
++        //网络请求数据
++        doHttp(map);
++    }
++
++    public void doHttp(Map<String,String> map) {
++        getString(Http.SCAN_SHOP_URL, SHOP_CONTENT, map);
++    }
++
++    private void initWeght() {
++        txtInput = (TextView)getView(R.id.txtput);
++        txtShop = (TextView)getView(R.id.txt_shop);
++        txtShopHome = (TextView)getView(R.id.txt_shophome);
++        cameraImage = (ImageView)getView(R.id.image_serch);
++        shopList = (XRecyclerView)getView(R.id.shoplist);
++        txtInput.setOnClickListener(this);
++        shopList.setPullRefreshEnabled(true);
++        shopList.setLoadingListener(new XRecyclerView.LoadingListener() {
++            @Override
++            public void onRefresh() {
++                Map<String, String> map = new HashMap<>();
++                map.put("keywords", keywords);
++                map.put("page", page+"");
++                map.put("source", "android");
++                doHttp(map);
++            }
++
++            @Override
++            public void onLoadMore() {
++                page++;
++                if (searShopBean.getData().size() == 0){
++                    page =0;
++                    toast("沒有更多数据");
++                }
++                Map<String, String> map = new HashMap<>();
++                map.put("keywords", keywords);
++                map.put("page", page+"");
++                map.put("source", "android");
++                doHttp(map);
++            }
++        });
++    }
++
++    @Override
++    public void initContext(Context context) {
++        super.initContext(context);
++        this.mContext = context;
++    }
++
++    @Override
++    protected int getLayoutId() {
++        return R.layout.layout_iteam_listshop;
++    }
++
++    @Override
++    public void successString(String data, int type) {
++        super.successString(data, type);
++        switch (type) {
++            case SHOP_CONTENT:
++                setShopAdapter(data);
++                break;
++        }
++    }
++
++    @Override
++    public void failString(String msg) {
++        super.failString(msg);
++    }
++
++    public void setShopAdapter(String data) {
++         searShopBean = new Gson().fromJson(data, SearShopBean.class);
++        if (searShopBean.getData().size() == 0){
++            page = 0;
++        }
++
++        StaggeredGridLayoutManager manager = new StaggeredGridLayoutManager(2,StaggeredGridLayoutManager.VERTICAL);
++        SearShopAdapter searShopAdapter = new SearShopAdapter(mContext,searShopBean.getData());
++        shopList.setLayoutManager(manager);
++        shopList.setAdapter(searShopAdapter);
++    }
++
++    @Override
++    public void onClick(View v) {
++        switch (v.getId()){
++            case R.id.txtput:
++                mContext.startActivity(new Intent(mContext, SearchActivity.class));
++                break;
++        }
++    }
++}
+\ No newline at end of file
+Index: app/src/main/java/com/xiangri/dongdong/perstener/ShowShopActivityPerstener.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- app/src/main/java/com/xiangri/dongdong/perstener/ShowShopActivityPerstener.java	(revision 010f9bebd2a9915a40c7d2cba1b00b365b988952)
++++ app/src/main/java/com/xiangri/dongdong/perstener/ShowShopActivityPerstener.java	(date 1541815550022)
+@@ -13,7 +13,6 @@
+ import com.xiangri.dongdong.R;
+ import com.xiangri.dongdong.activity.ShowShopActivity;
+ import com.xiangri.dongdong.entity.RegisterBean;
+-import com.xiangri.dongdong.entity.RightShopBean;
+ import com.xiangri.dongdong.mvp.view.AppDelegate;
+ import com.xiangri.dongdong.net.Http;
+ import com.xiangri.dongdong.utils.SpUtil;
+@@ -38,7 +37,6 @@
+         Intent intent = ((ShowShopActivity) mContext).getIntent();
+         String url = intent.getStringExtra("url");
+         pid = intent.getIntExtra("pid", 0);
+-        Log.d("Tagpid", pid + "");
+         //設置事件
+         setEvent();
+         //显示Web信息资源
+Index: app/src/main/java/com/xiangri/dongdong/sql/SqlUtil.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- app/src/main/java/com/xiangri/dongdong/sql/SqlUtil.java	(date 1542090195693)
++++ app/src/main/java/com/xiangri/dongdong/sql/SqlUtil.java	(date 1542090195693)
+@@ -0,0 +1,57 @@
++package com.xiangri.dongdong.sql;
++
++import android.content.Context;
++import android.database.sqlite.SQLiteDatabase;
++
++import com.xiangri.dongdong.entity.HistoryEntity;
++import com.xiangri.dongdong.greendao.DaoMaster;
++import com.xiangri.dongdong.greendao.DaoSession;
++import com.xiangri.dongdong.greendao.HistoryEntityDao;
++
++import java.util.List;
++
++public class SqlUtil {
++    private static SqlUtil sqlUtil;
++    private HistoryEntityDao historyEntityDao;
++
++
++    private SqlUtil() {
++
++    }
++
++    public static SqlUtil getInstens() {
++        if (sqlUtil == null) {
++            synchronized (SqlUtil.class) {
++                sqlUtil = new SqlUtil();
++            }
++        }
++        return sqlUtil;
++    }
++
++    public void init(Context context, String dbName) {
++        DaoMaster.OpenHelper helper = new DaoMaster.DevOpenHelper(context, dbName);
++        SQLiteDatabase db = helper.getWritableDatabase();
++        DaoSession daoSession = new DaoMaster(db).newSession();
++        historyEntityDao = daoSession.getHistoryEntityDao();
++    }
++
++    public void insert(String type, String data) {
++        HistoryEntity historyEntity = new HistoryEntity();
++        historyEntity.setTpye(type);
++        historyEntity.setHistory(data);
++        historyEntityDao.insert(historyEntity);
++    }
++
++    public void deleteAll() {
++        historyEntityDao.deleteAll();
++    }
++
++    public  List<HistoryEntity> queryAll(){
++       return historyEntityDao.loadAll();
++    }
++
++    public void deleteByKey(Long key){
++        historyEntityDao.deleteByKey(key);
++    }
++
++}
+\ No newline at end of file
+Index: app/src/main/java/com/xiangri/dongdong/utils/PermissionUtils.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- app/src/main/java/com/xiangri/dongdong/utils/PermissionUtils.java	(revision 010f9bebd2a9915a40c7d2cba1b00b365b988952)
++++ app/src/main/java/com/xiangri/dongdong/utils/PermissionUtils.java	(date 1541681501930)
+@@ -17,7 +17,7 @@
+     public static void permission(final Context context, final PermissionListener listener) {
+         AndPermission.with(context)
+                 .permission(Permission.ACCESS_COARSE_LOCATION,
+-                        Permission.READ_EXTERNAL_STORAGE, Permission.WRITE_EXTERNAL_STORAGE)
++                        Permission.READ_EXTERNAL_STORAGE, Permission.WRITE_EXTERNAL_STORAGE,Permission.CAMERA)
+                 .onGranted(new Action() {
+                     @Override
+                     public void onAction(List<String> permissions) {
+@@ -35,7 +35,7 @@
+                     }
+                 }).start();
+     }
+- 
++
+     public interface PermissionListener {
+         void success();
+     }
+Index: app/src/main/java/com/xiangri/dongdong/view/HorseView.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- app/src/main/java/com/xiangri/dongdong/view/HorseView.java	(revision 010f9bebd2a9915a40c7d2cba1b00b365b988952)
++++ app/src/main/java/com/xiangri/dongdong/view/HorseView.java	(date 1541918401374)
+@@ -76,8 +76,11 @@
+             @Override
+             public void onAnimationEnd(Animator animator) {
+                 postion++;
+-                horseTile.setText(titles.get(postion % titles.size()));
+-                horseImage.setImageURI(images.get(postion % images.size()));
++                if ( titles.size() != 0 || images.size() != 0){
++                    horseTile.setText(titles.get(postion % titles.size()));
++                    horseImage.setImageURI(images.get(postion % images.size()));
++                }
++
+             }
+         });
+     }
+Index: app/src/main/java/com/xiangri/dongdong/view/SelfView.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- app/src/main/java/com/xiangri/dongdong/view/SelfView.java	(date 1542105543721)
++++ app/src/main/java/com/xiangri/dongdong/view/SelfView.java	(date 1542105543721)
+@@ -0,0 +1,132 @@
++package com.xiangri.dongdong.view;
++
++import android.content.Context;
++import android.content.Intent;
++import android.support.annotation.Nullable;
++import android.util.AttributeSet;
++import android.util.Log;
++import android.view.View;
++import android.view.ViewGroup;
++import android.widget.LinearLayout;
++import android.widget.RelativeLayout;
++import android.widget.TextView;
++import android.widget.Toast;
++
++import com.xiangri.dongdong.R;
++import com.xiangri.dongdong.activity.SearchActivity;
++import com.xiangri.dongdong.activity.ShopListActivity;
++import com.xiangri.dongdong.entity.HistoryEntity;
++import com.xiangri.dongdong.sql.SqlUtil;
++import com.xiangri.dongdong.utils.SpUtil;
++
++import java.util.ArrayList;
++import java.util.List;
++
++public class SelfView extends RelativeLayout implements View.OnClickListener {
++
++    private Context mcontext;
++    private LinearLayout layoutall;
++    private List<HistoryEntity> datas = new ArrayList<>();
++    private LinearLayout linearhor;
++    private TextView txt;
++
++    public SelfView(Context context) {
++        super(context);
++        init(context);
++    }
++
++    public SelfView(Context context, @Nullable AttributeSet attrs) {
++        super(context, attrs);
++        init(context);
++    }
++
++    public SelfView(Context context, @Nullable AttributeSet attrs, int defStyleAttr) {
++        super(context, attrs, defStyleAttr);
++        init(context);
++    }
++
++    private void init(Context context) {
++        this.mcontext = context;
++        //初始化控件
++        View view = View.inflate(mcontext, R.layout.layout_liu_v, null);
++        //初始化主布局
++        layoutall = view.findViewById(R.id.layout_v);
++        view.findViewById(R.id.remove).setOnClickListener(this);
++        this.addView(view);
++    }
++
++    public void setData(List<HistoryEntity> data) {
++        datas = data;
++        setList(data);
++    }
++
++    private void setList(final List<HistoryEntity> list) {
++
++        layoutall.removeAllViews();
++        //创建第二的布局
++        linearhor = (LinearLayout) View.inflate(mcontext, R.layout.layout_liu_h, null);
++
++        layoutall.addView(linearhor);
++        linearhor.removeAllViews();
++
++        int len = 0;
++        for (int i = 0; i < list.size(); i++) {
++            String data = list.get(i).getHistory();
++            len += data.length();
++            if (len > 23) {
++                linearhor = (LinearLayout) View.inflate(mcontext, R.layout.layout_liu_h, null);
++                layoutall.addView(linearhor);
++                len = 0;
++            }
++            //找到textview的布局
++            View viewtxt = View.inflate(mcontext, R.layout.layout_liu_txt, null);
++            //找到txtview的控件
++            txt = (TextView) viewtxt.findViewById(R.id.txt_shop_name);
++            //设置文字
++            txt.setText(data);
++            //太你就爱到布局
++            linearhor.addView(viewtxt);
++            //设置布局的宽高
++            LinearLayout.LayoutParams layoutParams = (LinearLayout.LayoutParams) viewtxt.getLayoutParams();
++            layoutParams.weight = 1;
++            layoutParams.topMargin = 10;
++/*          layoutParams.leftMargin = 10;
++            layoutParams.rightMargin = 10;*/
++            viewtxt.setLayoutParams(layoutParams);
++
++
++
++
++        }
++
++        for ( int i = 0; i <linearhor.getChildCount() ; i++) {
++           final View view= linearhor.getChildAt(i);
++            final int finalI = i;
++            view.setOnClickListener(new OnClickListener() {
++                @Override
++                public void onClick(View v) {
++                Intent intent = new Intent(mcontext, ShopListActivity.class);
++                intent.putExtra("keywords", datas.get(finalI).getHistory());
++                ((SearchActivity) mcontext).finish();
++                ((SearchActivity) mcontext).startActivity(intent);
++                }
++            });
++        }
++
++        LinearLayout.LayoutParams params = (LinearLayout.LayoutParams) linearhor.getLayoutParams();
++        params.leftMargin=10;
++        params.rightMargin=10;
++        linearhor.setLayoutParams(params);
++
++    }
++
++    @Override
++    public void onClick(View v) {
++        switch (v.getId()) {
++            case R.id.remove:
++                SqlUtil.getInstens().deleteAll();
++                layoutall.removeAllViews();
++                break;
++        }
++    }
++}
+\ No newline at end of file
+Index: app/src/main/java/com/xiangri/dongdong/App.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- app/src/main/java/com/xiangri/dongdong/App.java	(revision 010f9bebd2a9915a40c7d2cba1b00b365b988952)
++++ app/src/main/java/com/xiangri/dongdong/App.java	(date 1542077674707)
+@@ -6,6 +6,7 @@
+ import com.facebook.drawee.backends.pipeline.Fresco;
+ import com.xiangri.dongdong.net.Http;
+ import com.xiangri.dongdong.net.RetrofitHelper;
++import com.xiangri.dongdong.sql.SqlUtil;
+ 
+ public    class App extends Application{
+     @Override
+@@ -13,6 +14,7 @@
+         super.onCreate();
+         MultiDex.install(this);
+         Fresco.initialize(this);
+-        RetrofitHelper.getInstens().init(Http.BASE_URL+"/");
++        RetrofitHelper.getInstens().init(Http.BASE_URL+"/",this);
++        SqlUtil.getInstens().init(this,"db");
+     }
+ }
+\ No newline at end of file
+Index: app/src/main/res/drawable/et_778899all_bg.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- app/src/main/res/drawable/et_778899all_bg.xml	(date 1541769433083)
++++ app/src/main/res/drawable/et_778899all_bg.xml	(date 1541769433083)
+@@ -0,0 +1,7 @@
++<?xml version="1.0" encoding="utf-8"?>
++<shape xmlns:android="http://schemas.android.com/apk/res/android">
++
++    <solid android:color="@color/color778899"></solid>
++
++    <corners android:radius="15dp"></corners>
++</shape>
+\ No newline at end of file
+Index: app/src/main/res/drawable/et_e8e8e8_bg.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- app/src/main/res/drawable/et_e8e8e8_bg.xml	(date 1541764217899)
++++ app/src/main/res/drawable/et_e8e8e8_bg.xml	(date 1541764217899)
+@@ -0,0 +1,8 @@
++<?xml version="1.0" encoding="utf-8"?>
++<shape xmlns:android="http://schemas.android.com/apk/res/android">
++
++    <solid android:color="@color/colorefff"></solid>
++    <corners
++        android:topLeftRadius="15dp"
++        android:topRightRadius="15dp"></corners>
++</shape>
+\ No newline at end of file
+Index: app/src/main/res/drawable/et_fffall_bg.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- app/src/main/res/drawable/et_fffall_bg.xml	(date 1541811886998)
++++ app/src/main/res/drawable/et_fffall_bg.xml	(date 1541811886998)
+@@ -0,0 +1,7 @@
++<?xml version="1.0" encoding="utf-8"?>
++<shape xmlns:android="http://schemas.android.com/apk/res/android">
++
++    <solid android:color="@color/colorefff"></solid>
++    <corners
++        android:radius="15dp"></corners>
++</shape>
+\ No newline at end of file
+Index: app/src/main/res/drawable/et_solid_d43c3c_bg.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- app/src/main/res/drawable/et_solid_d43c3c_bg.xml	(revision 010f9bebd2a9915a40c7d2cba1b00b365b988952)
++++ app/src/main/res/drawable/et_solid_d43c3c_bg.xml	(date 1541764351798)
+@@ -2,5 +2,7 @@
+ <shape xmlns:android="http://schemas.android.com/apk/res/android">
+ 
+     <solid android:color="@color/colorPrimary"></solid>
++
+     <corners android:radius="7dp"></corners>
++
+ </shape>
+\ No newline at end of file
+Index: app/src/main/res/layout/activity_login.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- app/src/main/res/layout/activity_login.xml	(revision 010f9bebd2a9915a40c7d2cba1b00b365b988952)
++++ app/src/main/res/layout/activity_login.xml	(date 1541674724571)
+@@ -1,97 +1,103 @@
+ <?xml version="1.0" encoding="utf-8"?>
+ <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
++    xmlns:app="http://schemas.android.com/apk/res-auto"
+     android:layout_width="match_parent"
+     android:layout_height="match_parent"
+-    android:orientation="vertical"
+     android:background="#F5F5F5"
+-    xmlns:app="http://schemas.android.com/apk/res-auto">
++    android:orientation="vertical">
+ 
+     <com.xiangri.dongdong.view.TopView
+         android:id="@+id/login_user"
+         android:layout_width="match_parent"
+         android:layout_height="wrap_content"
+-        app:title="登录"
+-        app:rightcontent="帮助"></com.xiangri.dongdong.view.TopView>
++        app:rightcontent="帮助"
++        app:title="登录"></com.xiangri.dongdong.view.TopView>
+ 
+     <LinearLayout
+         android:layout_width="match_parent"
+-        android:background="@color/colorefff"
++        android:layout_height="100dp"
+         android:layout_marginTop="10dp"
+-        android:orientation="vertical"
+-        android:layout_height="100dp">
++        android:background="@color/colorefff"
++        android:orientation="vertical">
+ 
+         <LinearLayout
+             android:layout_width="match_parent"
+             android:layout_height="50dp"
+             android:orientation="horizontal"
+             android:weightSum="1">
++
+             <TextView
+                 android:layout_width="0dp"
++                android:layout_height="match_parent"
+                 android:layout_weight="0.2"
+-                android:layout_height="match_parent"
++                android:gravity="center"
+                 android:text="账户"
+-                android:gravity="center"
+-                android:textColor="@color/colore000"/>
++                android:textColor="@color/colore000" />
++
+             <EditText
+                 android:id="@+id/et_username"
+                 android:layout_width="0dp"
+                 android:layout_height="match_parent"
+                 android:layout_weight="0.8"
+-                android:hint="请输入账号"
+-                />
++                android:hint="请输入账号" />
+         </LinearLayout>
++
+         <LinearLayout
+             android:layout_width="match_parent"
+             android:layout_height="50dp"
+             android:orientation="horizontal"
+             android:weightSum="1">
++
+             <TextView
+                 android:layout_width="0dp"
+-                android:layout_weight="0.2"
+                 android:layout_height="match_parent"
+-                android:text="登录密码"
++                android:layout_weight="0.2"
+                 android:gravity="center"
+-                android:textColor="@color/colore000"/>
++                android:text="登录密码"
++                android:textColor="@color/colore000" />
++
+             <EditText
+                 android:id="@+id/et_password"
+                 android:layout_width="0dp"
+                 android:layout_height="match_parent"
+                 android:layout_weight="0.8"
+-                android:hint="请输入账号"
+-                />
++                android:hint="请输入账号" />
+         </LinearLayout>
+     </LinearLayout>
+ 
+     <Button
+         android:id="@+id/btn_login"
+-        android:layout_marginTop="20dp"
+         android:layout_width="match_parent"
+-        android:gravity="center"
+         android:layout_height="50dp"
+         android:layout_marginLeft="10dp"
+         android:layout_marginRight="10dp"
++        android:layout_marginTop="20dp"
+         android:background="@drawable/et_solid_d43c3c_bg"
++        android:gravity="center"
++        android:text="登录"
+         android:textColor="@color/colorefff"
+-        android:textSize="20dp"
+-        android:text="登录"/>
++        android:textSize="20dp" />
++
+     <RelativeLayout
+         android:layout_width="match_parent"
+         android:layout_height="50dp">
++
+         <TextView
+             android:id="@+id/new_user_recest"
+             android:layout_width="80dp"
+             android:layout_height="40dp"
+-            android:gravity="center"
+             android:layout_alignParentLeft="true"
+-            android:text="新用戶註冊"/>
++            android:gravity="center"
++            android:text="新用戶註冊" />
++
+         <TextView
+             android:id="@+id/user_find_password"
+             android:layout_width="80dp"
+             android:layout_height="40dp"
+-            android:gravity="center"
+             android:layout_alignParentRight="true"
+             android:layout_gravity="left"
+-            android:text="找回密码"/>
++            android:gravity="center"
++            android:text="找回密码" />
+     </RelativeLayout>
+ 
+ </LinearLayout>
+Index: app/src/main/res/layout/activity_search.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- app/src/main/res/layout/activity_search.xml	(date 1542105576359)
++++ app/src/main/res/layout/activity_search.xml	(date 1542105576359)
+@@ -0,0 +1,72 @@
++<?xml version="1.0" encoding="utf-8"?>
++<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
++    xmlns:tools="http://schemas.android.com/tools"
++    android:layout_width="match_parent"
++    android:layout_height="match_parent"
++    tools:context=".activity.SearchActivity"
++    android:background="@color/colorPrimary">
++
++    <LinearLayout
++        android:id="@+id/search_bar"
++        android:layout_width="match_parent"
++        android:layout_height="60dp"
++        android:gravity="center"
++        android:layout_marginTop="5dp"
++        android:orientation="horizontal"
++        android:weightSum="1">
++
++        <ImageView
++            android:id="@+id/iv_back"
++            android:layout_width="0dp"
++            android:layout_weight="0.08"
++            android:layout_height="40dp"
++            android:src="@drawable/shop_left"/>
++
++        <EditText
++            android:id="@+id/et_input"
++            android:layout_width="0dp"
++            android:layout_height="40dp"
++            android:layout_margin="5dp"
++            android:hint="抖音最火戒指"
++            android:layout_weight="0.8"
++            android:paddingLeft="10dp"
++            android:background="@drawable/et_fffall_bg" />
++
++        <TextView
++            android:id="@+id/txt_serch"
++            android:layout_width="0dp"
++            android:layout_height="match_parent"
++            android:gravity="center"
++            android:layout_weight="0.12"
++            android:textColor="#FFF"
++            android:textSize="20dp"
++            android:text="@string/serch"/>
++    </LinearLayout>
++
++
++
++    <LinearLayout
++        android:layout_marginTop="70dp"
++        android:layout_width="match_parent"
++        android:background="@drawable/et_e8e8e8_bg"
++        android:orientation="vertical"
++        android:layout_height="match_parent">
++        <TextView
++            android:layout_width="match_parent"
++            android:layout_height="30dp"
++            android:gravity="center_vertical"
++            android:layout_marginTop="20dp"
++            android:layout_marginLeft="10dp"
++            android:text="历史搜索:"/>
++
++        <com.xiangri.dongdong.view.SelfView
++            android:id="@+id/self"
++            android:layout_width="match_parent"
++            android:layout_height="match_parent"></com.xiangri.dongdong.view.SelfView>
++
++    </LinearLayout>
++
++
++
++
++</RelativeLayout>
+\ No newline at end of file
+Index: app/src/main/res/layout/layout_fragment_home.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- app/src/main/res/layout/layout_fragment_home.xml	(revision 010f9bebd2a9915a40c7d2cba1b00b365b988952)
++++ app/src/main/res/layout/layout_fragment_home.xml	(date 1541812427135)
+@@ -2,6 +2,7 @@
+ <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+     android:layout_width="match_parent"
+     android:layout_height="match_parent"
++    android:background="@color/colore8e8e8"
+     android:orientation="vertical">
+ 
+     <include
+Index: app/src/main/res/layout/layout_fragment_list.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- app/src/main/res/layout/layout_fragment_list.xml	(revision 010f9bebd2a9915a40c7d2cba1b00b365b988952)
++++ app/src/main/res/layout/layout_fragment_list.xml	(date 1541817227867)
+@@ -3,6 +3,7 @@
+     android:layout_width="match_parent"
+     android:layout_height="match_parent"
+     xmlns:app="http://schemas.android.com/apk/res-auto"
++    android:background="@color/colore8e8e8"
+     android:orientation="vertical">
+     <com.xiangri.dongdong.view.TopView
+         android:id="@+id/topview"
+@@ -18,12 +19,6 @@
+             android:id="@+id/left"
+             android:layout_width="100dp"
+             android:layout_height="match_parent"></android.support.v7.widget.RecyclerView>
+-        <View
+-            android:layout_width="3dp"
+-            android:layout_marginLeft="1dp"
+-            android:layout_height="match_parent"
+-            android:background="@color/colorPrimary">
+-        </View>
+         <ListView
+             android:id="@+id/right"
+             android:layout_width="match_parent"
+Index: app/src/main/res/layout/layout_fragment_shopcar.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- app/src/main/res/layout/layout_fragment_shopcar.xml	(revision 010f9bebd2a9915a40c7d2cba1b00b365b988952)
++++ app/src/main/res/layout/layout_fragment_shopcar.xml	(date 1542008748872)
+@@ -2,7 +2,8 @@
+ <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+     xmlns:top="http://schemas.android.com/apk/res-auto"
+     android:layout_width="match_parent"
+-    android:layout_height="match_parent">
++    android:layout_height="match_parent"
++    android:background="@color/colore8e8e8">
+ 
+     <com.xiangri.dongdong.view.TopView
+         android:id="@+id/topview"
+@@ -24,6 +25,7 @@
+         android:id="@+id/all"
+         android:layout_width="match_parent"
+         android:layout_height="50dp"
++        android:background="@color/colorefff"
+         android:layout_alignParentBottom="true">
+ 
+         <ImageView
+@@ -31,7 +33,7 @@
+             android:layout_width="30dp"
+             android:layout_height="30dp"
+             android:layout_centerVertical="true"
+-            android:layout_marginLeft="10dp"
++            android:layout_marginLeft="20dp"
+             android:src="@drawable/cricle_no" />
+ 
+         <TextView
+@@ -46,9 +48,11 @@
+ 
+         <TextView
+             android:id="@+id/total"
+-            android:layout_width="wrap_content"
++            android:layout_width="match_parent"
+             android:layout_height="wrap_content"
+             android:layout_centerVertical="true"
++            android:layout_toRightOf="@+id/show_all"
++            android:gravity="right"
+             android:layout_marginRight="10dp"
+             android:layout_toLeftOf="@+id/close"
+             android:text="合计：0"
+@@ -59,11 +63,10 @@
+             android:layout_width="100dp"
+             android:layout_height="50dp"
+             android:layout_alignParentRight="true"
+-            android:layout_gravity="center_vertical|center_horizontal"
+             android:background="@color/colorPrimary"
+-            android:gravity="center_vertical"
++            android:gravity="center"
+             android:text="结算(0)"
+-            android:textColor="@color/colore000"
++            android:textColor="@color/colore8e8e8"
+             android:textSize="20dp" />
+ 
+     </RelativeLayout>
+Index: app/src/main/res/layout/layout_home_jiu.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- app/src/main/res/layout/layout_home_jiu.xml	(revision 010f9bebd2a9915a40c7d2cba1b00b365b988952)
++++ app/src/main/res/layout/layout_home_jiu.xml	(date 1541811683374)
+@@ -23,7 +23,7 @@
+ 
+     <RelativeLayout
+         android:layout_width="match_parent"
+-        android:layout_height="200dp"
++        android:layout_height="220dp"
+         android:orientation="vertical">
+ 
+         <android.support.v4.view.ViewPager
+Index: app/src/main/res/layout/layout_iteam_car.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- app/src/main/res/layout/layout_iteam_car.xml	(revision 010f9bebd2a9915a40c7d2cba1b00b365b988952)
++++ app/src/main/res/layout/layout_iteam_car.xml	(date 1541767957258)
+@@ -1,7 +1,8 @@
+ <?xml version="1.0" encoding="utf-8"?>
+ <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+     android:layout_width="match_parent"
+-    android:layout_height="wrap_content">
++    android:layout_height="wrap_content"
++    android:background="@color/colorefff">
+ 
+     <ImageView
+         android:id="@+id/iv_select"
+Index: app/src/main/res/layout/layout_iteam_image.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- app/src/main/res/layout/layout_iteam_image.xml	(date 1542081310309)
++++ app/src/main/res/layout/layout_iteam_image.xml	(date 1542081310309)
+@@ -0,0 +1,44 @@
++<?xml version="1.0" encoding="utf-8"?>
++<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
++    android:layout_width="match_parent"
++    android:layout_height="match_parent"
++    android:orientation="vertical">
++
++    <LinearLayout
++        android:layout_width="wrap_content"
++        android:layout_margin="10dp"
++        android:layout_height="wrap_content"
++        android:padding="10dp"
++        android:background="@drawable/et_fffall_bg"
++        android:orientation="vertical">
++
++        <ImageView
++            android:id="@+id/gride_image"
++            android:layout_width="70dp"
++            android:layout_height="70dp"
++            android:layout_gravity="center_horizontal"
++            android:scaleType="centerCrop"
++            android:src="@mipmap/ic_launcher" />
++
++        <TextView
++            android:id="@+id/txt"
++            android:layout_width="wrap_content"
++            android:layout_height="wrap_content"
++            android:layout_gravity="center_horizontal"
++            android:maxEms="20"
++            android:maxLines="2"
++            android:text="@string/app_name" />
++
++        <TextView
++            android:id="@+id/txt_price"
++            android:layout_width="wrap_content"
++            android:layout_height="wrap_content"
++            android:layout_gravity="center_horizontal"
++            android:maxEms="20"
++            android:maxLines="2"
++            android:textColor="@color/colorPrimary"
++            android:textSize="20dp" />
++    </LinearLayout>
++
++
++</LinearLayout>
+Index: app/src/main/res/layout/layout_iteam_list.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- app/src/main/res/layout/layout_iteam_list.xml	(revision 010f9bebd2a9915a40c7d2cba1b00b365b988952)
++++ app/src/main/res/layout/layout_iteam_list.xml	(date 1541814938432)
+@@ -4,23 +4,44 @@
+     android:layout_height="match_parent"
+     android:orientation="vertical">
+ 
+-    <TextView
+-        android:id="@+id/txt_content"
+-        android:layout_width="wrap_content"
+-        android:layout_height="wrap_content" />
+-
+-    <View
+-        android:id="@+id/view"
+-        android:layout_width="match_parent"
+-        android:layout_height="2dp"
+-        android:layout_below="@id/txt_content"
+-        android:background="@color/colore999999"></View>
++
++    <RelativeLayout
++        android:layout_marginTop="10dp"
++        android:layout_marginRight="10dp"
++        android:layout_marginLeft="10dp"
++        android:layout_marginBottom="10dp"
++        android:paddingBottom="10dp"
++        android:layout_width="match_parent"
++        android:layout_height="wrap_content"
++        android:background="@drawable/et_fffall_bg">
++
++        <LinearLayout
++            android:id="@+id/liner"
++            android:layout_marginTop="10dp"
++            android:layout_width="match_parent"
++            android:layout_height="30dp"
++            android:orientation="horizontal">
++            <ImageView
++                android:layout_width="30dp"
++                android:layout_height="30dp"
++                android:src="@drawable/shop_home"/>
++            <TextView
++                android:id="@+id/txt_content"
++                android:layout_width="wrap_content"
++                android:layout_height="wrap_content"
++                android:layout_gravity="center"
++                android:layout_marginLeft="10dp"
++                android:text="商家1"/>
++        </LinearLayout>
+ 
+-    <android.support.v7.widget.RecyclerView
+-        android:id="@+id/shop_merchant"
+-        android:layout_width="match_parent"
+-        android:layout_height="wrap_content"
+-        android:layout_below="@id/view"
+-        android:layout_marginTop="5dp"></android.support.v7.widget.RecyclerView>
++        <android.support.v7.widget.RecyclerView
++            android:id="@+id/shop_merchant"
++            android:layout_width="match_parent"
++            android:layout_height="wrap_content"
++            android:layout_below="@id/liner"
++            android:layout_marginTop="10dp"></android.support.v7.widget.RecyclerView>
++    </RelativeLayout>
++
++
+ 
+ </RelativeLayout>
+Index: app/src/main/res/layout/layout_iteam_listshop.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- app/src/main/res/layout/layout_iteam_listshop.xml	(date 1542088692789)
++++ app/src/main/res/layout/layout_iteam_listshop.xml	(date 1542088692789)
+@@ -0,0 +1,73 @@
++<?xml version="1.0" encoding="utf-8"?>
++<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
++    android:layout_width="match_parent"
++    android:layout_height="match_parent"
++    android:background="@color/colorPrimary">
++    <LinearLayout
++        android:id="@+id/search_bar"
++        android:layout_width="match_parent"
++        android:layout_height="60dp"
++        android:gravity="center"
++        android:layout_marginTop="5dp"
++        android:orientation="horizontal"
++        android:weightSum="1">
++
++        <TextView
++            android:id="@+id/txtput"
++            android:layout_width="0dp"
++            android:layout_height="40dp"
++            android:layout_margin="5dp"
++            android:hint="请输入信息"
++            android:gravity="center_vertical"
++            android:layout_weight="0.93"
++            android:paddingLeft="10dp"
++            android:background="@drawable/et_fffall_bg" />
++
++        <ImageView
++            android:id="@+id/image_serch"
++            android:layout_width="0dp"
++            android:layout_height="wrap_content"
++            android:layout_weight="0.07"
++            android:textColor="#FFF"
++            android:src="@drawable/phone"
++            android:textSize="20dp" />
++    </LinearLayout>
++
++    <LinearLayout
++        android:layout_below="@id/search_bar"
++        android:orientation="horizontal"
++        android:layout_marginTop="10dp"
++        android:layout_width="match_parent"
++        android:layout_height="30dp">
++
++        <TextView
++            android:id="@+id/txt_shop"
++            android:layout_width="0dp"
++            android:layout_weight="1"
++            android:gravity="center"
++            android:textColor="@color/colorefff"
++            android:layout_height="wrap_content"
++            android:textSize="20dp"
++            android:text="商品"/>
++        <TextView
++            android:id="@+id/txt_shophome"
++            android:layout_width="0dp"
++            android:gravity="center"
++            android:textColor="@color/colorefff"
++            android:layout_weight="1"
++            android:textSize="20dp"
++            android:layout_height="wrap_content"
++            android:text="店铺"/>
++
++    </LinearLayout>
++
++        <com.jcodecraeer.xrecyclerview.XRecyclerView
++            android:id="@+id/shoplist"
++            android:layout_marginTop="120dp"
++            android:paddingTop="10dp"
++            android:layout_width="match_parent"
++            android:background="@drawable/et_e8e8e8_bg"
++            android:layout_height="match_parent">
++        </com.jcodecraeer.xrecyclerview.XRecyclerView>
++
++</RelativeLayout>
+Index: app/src/main/res/layout/layout_iteam_shop.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- app/src/main/res/layout/layout_iteam_shop.xml	(date 1541820647367)
++++ app/src/main/res/layout/layout_iteam_shop.xml	(date 1541820647367)
+@@ -0,0 +1,13 @@
++<?xml version="1.0" encoding="utf-8"?>
++<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
++    android:layout_width="match_parent"
++    android:layout_height="match_parent"
++    android:orientation="vertical">
++
++    <RelativeLayout
++        android:layout_width="match_parent"
++        android:layout_height="150dp"
++        ></RelativeLayout>
++    
++    
++</LinearLayout>
+Index: app/src/main/res/layout/layout_jiu_shopmessage.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- app/src/main/res/layout/layout_jiu_shopmessage.xml	(revision 010f9bebd2a9915a40c7d2cba1b00b365b988952)
++++ app/src/main/res/layout/layout_jiu_shopmessage.xml	(date 1542081309951)
+@@ -3,7 +3,6 @@
+     android:layout_width="match_parent"
+     android:layout_height="match_parent"
+     android:orientation="vertical">
+-
+     <ImageView
+         android:id="@+id/gride_image"
+         android:layout_width="70dp"
+@@ -14,9 +13,21 @@
+ 
+     <TextView
+         android:id="@+id/txt"
++        android:layout_width="wrap_content"
++        android:layout_height="wrap_content"
+         android:layout_gravity="center_horizontal"
++        android:maxEms="20"
++        android:maxLines="2"
++        android:text="@string/app_name" />
++
++    <TextView
++        android:id="@+id/txt_price"
+         android:layout_width="wrap_content"
+         android:layout_height="wrap_content"
+-        android:text="@string/app_name" />
++        android:layout_gravity="center_horizontal"
++        android:maxEms="20"
++        android:maxLines="2"
++        android:textColor="@color/colorPrimary"
++        android:textSize="20dp" />
+ 
+-</LinearLayout>
++</LinearLayout>
+\ No newline at end of file
+Index: app/src/main/res/layout/layout_liu_h.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- app/src/main/res/layout/layout_liu_h.xml	(date 1542089015629)
++++ app/src/main/res/layout/layout_liu_h.xml	(date 1542089015629)
+@@ -0,0 +1,8 @@
++<?xml version="1.0" encoding="utf-8"?>
++<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
++    android:layout_width="match_parent"
++    android:layout_height="match_parent"
++    android:background="@color/colorefff"
++    android:orientation="horizontal">
++
++</LinearLayout>
+Index: app/src/main/res/layout/layout_liu_txt.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- app/src/main/res/layout/layout_liu_txt.xml	(date 1542091330971)
++++ app/src/main/res/layout/layout_liu_txt.xml	(date 1542091330971)
+@@ -0,0 +1,19 @@
++<?xml version="1.0" encoding="utf-8"?>
++<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
++    android:layout_width="match_parent"
++    android:layout_height="match_parent">
++
++    <RelativeLayout
++        android:layout_width="match_parent"
++        android:layout_height="wrap_content">
++    <TextView
++        android:id="@+id/txt_shop_name"
++        android:layout_width="wrap_content"
++        android:layout_height="wrap_content"
++        android:padding="10dp"
++        android:layout_centerHorizontal="true"
++        android:background="@drawable/et_solid_bg"
++        android:text="小兵"/>
++
++    </RelativeLayout>
++</RelativeLayout>
+Index: app/src/main/res/layout/layout_liu_v.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- app/src/main/res/layout/layout_liu_v.xml	(date 1542089018195)
++++ app/src/main/res/layout/layout_liu_v.xml	(date 1542089018195)
+@@ -0,0 +1,24 @@
++<?xml version="1.0" encoding="utf-8"?>
++<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
++    android:layout_width="match_parent"
++    android:layout_height="match_parent"
++    android:background="@color/colorefff">
++
++    <TextView
++        android:id="@+id/remove"
++        android:text="清空"
++        android:textSize="20dp"
++        android:layout_width="wrap_content"
++        android:layout_height="wrap_content"
++        android:layout_margin="20dp"
++        android:layout_alignParentRight="true"/>
++
++    <LinearLayout
++        android:id="@+id/layout_v"
++        android:layout_below="@id/remove"
++        android:layout_width="match_parent"
++        android:layout_height="wrap_content"
++        android:orientation="vertical">
++    </LinearLayout>
++
++</RelativeLayout>
+\ No newline at end of file
+Index: app/src/main/res/layout/layout_search_iteam.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- app/src/main/res/layout/layout_search_iteam.xml	(date 1541935587063)
++++ app/src/main/res/layout/layout_search_iteam.xml	(date 1541935587063)
+@@ -0,0 +1,11 @@
++<?xml version="1.0" encoding="utf-8"?>
++<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
++    android:layout_width="match_parent"
++    android:layout_height="match_parent">
++
++    <com.jcodecraeer.xrecyclerview.XRecyclerView
++        android:id="@+id/xrecy"
++        android:layout_width="match_parent"
++        android:layout_height="match_parent"></com.jcodecraeer.xrecyclerview.XRecyclerView>
++
++</LinearLayout>
+Index: app/src/main/res/values/colors.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- app/src/main/res/values/colors.xml	(revision 010f9bebd2a9915a40c7d2cba1b00b365b988952)
++++ app/src/main/res/values/colors.xml	(date 1541769394754)
+@@ -6,5 +6,6 @@
+     <color name="colore8e8e8">#e8e8e8</color>
+     <color name="colore999999">#999999</color>
+     <color name="colore000">#000</color>
++    <color name="color778899">#778899</color>
+     <color name="colorefff">#fff</color>
+ </resources>
+Index: app/src/main/res/values/strings.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- app/src/main/res/values/strings.xml	(revision 010f9bebd2a9915a40c7d2cba1b00b365b988952)
++++ app/src/main/res/values/strings.xml	(date 1541751904261)
+@@ -1,3 +1,4 @@
+ <resources>
+     <string name="app_name">最省钱的购物</string>
++    <string name="serch">搜索</string>
+ </resources>
+Index: app/src/main/AndroidManifest.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- app/src/main/AndroidManifest.xml	(revision 010f9bebd2a9915a40c7d2cba1b00b365b988952)
++++ app/src/main/AndroidManifest.xml	(date 1541766196131)
+@@ -1,5 +1,6 @@
+ <?xml version="1.0" encoding="utf-8"?>
+ <manifest xmlns:android="http://schemas.android.com/apk/res/android"
++    xmlns:tools="http://schemas.android.com/tools"
+     package="com.xiangri.dongdong">
+     //地图SDK（包含其搜索功能）需要的基础权限
+ 
+@@ -15,6 +16,12 @@
+     <uses-permission android:name="android.permission.READ_PHONE_STATE" />
+     <!-- 允许程序访问CellID或WiFi热点来获取粗略的位置 -->
+     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
++    <uses-permission
++        android:name="android.permission.MOUNT_UNMOUNT_FILESYSTEMS"
++        tools:ignore="ProtectedPermissions" />
++    <uses-permission android:name="android.permission.CAMERA" />
++    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
++    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+ 
+     <application
+         android:name=".App"
+@@ -38,13 +45,15 @@
+             //开发者申请的key
+         </meta-data>
+         <!-- 定位需要的服务 -->
+-        <service android:name="com.amap.api.location.APSService"></service>
++        <service android:name="com.amap.api.location.APSService" />
+ 
+         <activity android:name=".activity.MapActivity" />
+         <activity android:name=".activity.LoginActivity" />
+         <activity android:name=".activity.RegisterActivity" />
+         <activity android:name=".activity.ShowShopActivity" />
+-        <activity android:name=".activity.MyMessageActivity"></activity>
++        <activity android:name=".activity.MyMessageActivity" />
++        <activity android:name=".activity.SearchActivity"></activity>
++        <activity android:name=".activity.ShopListActivity"></activity>
+     </application>
+ 
+ </manifest>
+\ No newline at end of file
+Index: app/build.gradle
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- app/build.gradle	(revision 010f9bebd2a9915a40c7d2cba1b00b365b988952)
++++ app/build.gradle	(date 1542010670594)
+@@ -1,5 +1,7 @@
+ apply plugin: 'com.android.application'
+ apply plugin: 'com.jakewharton.butterknife'
++apply plugin: 'com.android.application'
++apply plugin: 'org.greenrobot.greendao' // apply plugin
+ android {
+     compileSdkVersion 28
+     defaultConfig {
+@@ -23,6 +25,13 @@
+     }
+ }
+ 
++greendao {
++    schemaVersion 1//数据库版本号
++    daoPackage 'com.xiangri.dongdong.greendao'//设置DaoMaster、DaoSession、Dao包名
++    targetGenDir 'src/main/java'//设置DaoMaster、DaoSession、Dao目录
++    //targetGenDirTest：设置生成单元测试目录
++    //generateTests：设置自动生成单元测试用例
++}
+ dependencies {
+     implementation fileTree(include: ['*.jar'], dir: 'libs')
+     implementation 'com.android.support:appcompat-v7:28.0.0'
+@@ -30,8 +39,6 @@
+     testImplementation 'junit:junit:4.12'
+     androidTestImplementation 'com.android.support.test:runner:1.0.2'
+     androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.2'
+-    //gson解析
+-    implementation 'com.google.guava:guava:16.0.1'
+     //第三方轮播图
+     implementation 'cn.bingoogolapple:bga-banner:2.2.4@aar'
+     //圆角
+@@ -47,8 +54,6 @@
+     implementation 'com.amap.api:3dmap:latest.integration'
+     //定位功能
+     implementation 'com.amap.api:location:latest.integration'
+-    //搜索功能
+-    implementation 'com.amap.api:search:latest.integration'
+     implementation 'com.yanzhenjie:permission:2.0.0-rc4'
+     // 一般依赖：
+     implementation 'com.facebook.fresco:fresco:1.11.0'
+@@ -65,4 +70,7 @@
+     implementation 'com.squareup.retrofit2:adapter-rxjava2:2.4.0'
+     implementation 'com.squareup.retrofit2:converter-gson:2.4.0'
+     implementation 'io.reactivex.rxjava2:rxandroid:2.1.0'
+-}
+\ No newline at end of file
++    implementation project(':xrecyclerview')
++    //greendao
++    implementation 'org.greenrobot:greendao:3.2.2' // add library
++}
+Index: app/proguard-rules.pro
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- app/proguard-rules.pro	(revision 010f9bebd2a9915a40c7d2cba1b00b365b988952)
++++ app/proguard-rules.pro	(date 1541815872257)
+@@ -19,3 +19,4 @@
+ # If you keep the line number information, uncomment this to
+ # hide the original source file name.
+ #-renamesourcefileattribute SourceFile
++
+Index: .idea/gradle.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- .idea/gradle.xml	(revision 010f9bebd2a9915a40c7d2cba1b00b365b988952)
++++ .idea/gradle.xml	(date 1541933437817)
+@@ -10,6 +10,7 @@
+             <option value="$PROJECT_DIR$" />
+             <option value="$PROJECT_DIR$/app" />
+             <option value="$PROJECT_DIR$/xlistviewlib" />
++            <option value="$PROJECT_DIR$/xrecyclerview" />
+             <option value="$PROJECT_DIR$/zxinglibrary" />
+           </set>
+         </option>
+Index: build.gradle
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- build.gradle	(revision 010f9bebd2a9915a40c7d2cba1b00b365b988952)
++++ build.gradle	(date 1542009647054)
+@@ -5,13 +5,15 @@
+     repositories {
+         google()
+         jcenter()
++        mavenCentral() // add repository
+     }
+     dependencies {
+         classpath 'com.android.tools.build:gradle:3.1.2'
+         classpath 'com.jfrog.bintray.gradle:gradle-bintray-plugin:1.0'
+         classpath 'com.github.dcendents:android-maven-gradle-plugin:1.4.1'
+         classpath 'com.jakewharton:butterknife-gradle-plugin:9.0.0-rc1'
+-
++        classpath 'com.android.tools.build:gradle:3.1.1'
++        classpath 'org.greenrobot:greendao-gradle-plugin:3.2.2' // add plugin
+         // NOTE: Do not place your application dependencies here; they belong
+         // in the individual module build.gradle files
+     }
+Index: settings.gradle
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- settings.gradle	(revision 010f9bebd2a9915a40c7d2cba1b00b365b988952)
++++ settings.gradle	(date 1541933423185)
+@@ -1,1 +1,1 @@
+-include ':app','xlistviewlib','zxinglibrary'
+\ No newline at end of file
++include ':app','xlistviewlib','zxinglibrary','xrecyclerview'
+\ No newline at end of file
+Index: zxinglibrary/build.gradle
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- zxinglibrary/build.gradle	(revision 010f9bebd2a9915a40c7d2cba1b00b365b988952)
++++ zxinglibrary/build.gradle	(date 1542009530513)
+@@ -12,9 +12,8 @@
+         versionCode 1
+         versionName "1.0"
+         vectorDrawables.useSupportLibrary = true
+-    }
+ 
+-
++    }
+ }
+ 
+ dependencies {
+diff --git app/src/main/res/drawable-hdpi/phone.png app/src/main/res/drawable-hdpi/phone.png
+new file mode 100644
+index 0000000000000000000000000000000000000000..bc2926c74746ce4d08431c74d0a5d64aa87bf42d
+GIT binary patch
+literal 4296
+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
+L&EZx0u9*J=0cRGr
+
+diff --git app/src/main/res/drawable-hdpi/shop_home.png app/src/main/res/drawable-hdpi/shop_home.png
+new file mode 100644
+index 0000000000000000000000000000000000000000..3f4a4cce8a0820fe2a0754d05f86a1d440698d85
+GIT binary patch
+literal 3380
+zc$@(=4a@S0P)<h;3K|Lk000e1NJLTq004jh004jp1^@s6!#-il000d8Nkl<ZcwX&Y
+zX|Nns75+|7cZWdO!;<%2PuP;zlb{HeL4ue9!&YI@Vk^`VEhtQ-h(#%eO;JE13bIrI
+zVXJ^h2`E&Ff*K&mD#R3mBFsF(mg&i3-wcFg?o5AH&*Nzl^JcndZckoj?)>d@&i&4J
+zzq$AJ?Y^f4=GWB>NLOcXl7|sMmy5s%zzCqr8R+u#%?Mxw(B%wtdHQAqFaqdu2D&_b
+zGXfX^bU6cEp1v6Yi~!otz$@Eeo60zQuTb#WP^_)mk6?7PXaPjXK?t6)0`<>Hz?ya=
+zYugAwAoGHkIWmMbM}V0SX<OUvCbhZtxSGUoGQ>5LOKM4TF_L?=r4yECvF$24e-e>>
+zlSAx24}v%NMKxQ1FzxJ97eIbz>>{qa7{G36C(}{!iA9;9e018=LaG8FAOoJW1R|g7
+zsLp9uGQ_2RQ2u_J&7~@Uyl0;wVqKDE0v#QjB!ma}#meJp<(ZlQqLu#YEuBC_#-#<m
+z8{!gtI#*Qtq?K!G0?23G^949BE#Tc0SHkM7{!;aiY2=)W0G`_c<1%BN0FZ6c0Nrgd
+z(;Nj-5kNj`pDnQFcUwoLnXiTLkjcf${kq%GE`Xp9V?Pq72$Au+!FF>zf=}d%YPxO?
+zv<sk+bxsH5a@{~pJb+<%V6IeoNGBIs1@Ii;T3Pp10Ve1KX<`jCz`yuKb&yUzv<jf$
+zIkO?MKqo*GYh4Cd4X5W;RG!eqi#7oeunSrDMFA%20%zj<KLaH0%LU~_b#bFj00UX)
+zBtmZ11<b@5nSo4&`%D^CPwU`FivS2%1<x&rV3H0{CPsY*2;7@1mXFZElNJFCc<u=l
+z+^z$Vi4l(hU86wD0*IdY6+Guz5t$kfy0Oy20CBe;l)v0+td<2(@G?h1GIzHM#P}y<
+zfMiBw&q>Ad^9eoIF>hG_`K<GlKvH{J)k<<*;CrWEEFafOo-GL=@7aflSc_T#V0>F(
+zfTT?|d5;oaY&J?u0w`pi#{tp4KizCH-RMX1wp^gT+HCGk3t+&r51?3&G~2N8)5HK7
+z+Eo3`jsi^!An&=0L~w|vG)$Nl7$A8|E>I^m6QU^rEbDRhsoL^XGYuM_6c`{wr>b_{
+zeGtW@(VG%L!E^71;HadH8T%9&AQ$?9Iyq?zi3PAM>rSnb&zh4xNvTfPo@B+Xs@;>0
+z0*M7s@SNKrazeW4nCMM0KwjquYIYLeL;`rJ50jKQ1&CNl8Zox*VSr$nqIQ|G9IwS~
+zF_8fBo^!K^G_~4{3&_~D#sJBya)Fu~H%e>)ygUID*VxXBB4Wo4ZtU96K+;hlwg3vA
+zvj8HA=9l)TZ(58PAbEK%P~VNiMl1n5KM@mz&Z`1(;{-J}8<_#}W2vfa{~+FOgd~;#
+z3Z8R0L{4uM%v>K;3|!(D%kvr`YAAq#9*k$EcF<#NqhRLxC}M#8c+5)Gv+MhKzaFZ_
+z0_d~Pqh*~xic&LBVlp5I&+ac)E^bKxdC$2|L=KMGrZF2;3~;euR5M!=Kq2eA56IS|
+zDlY>jCIkGyFRHpHwChd*uk3)G*Nk;z?<&PaWz5>hKq%#&dOL%41@OG*?r900Z6jXO
+zlx7BmoYo(xr6Yx{D}a2DJzZ=owfZ!gb2Z^Mz(A(T{U)tYPc|ih7kZt~gc;Ft1j+Qy
+z#$mux<tdY2L%t~i4D_LwmRs65&`qma7+|^A4=~u20HX8$nXKFP`n6gTH$kFj0+r1&
+zYRg?;#p<R65IN;NcbN$GFnn%$43K;>7pVPO+XwKRg%J7HrkB1!EX4f&pnPsi0?2#L
+zH$~(oL+7T)fQ9hj$;HY8EeW9ZC^&SA=0%WAOaR1Se^8z%K&2%CM9u}zxdS4{Z(<a5
+zHC!@0BNtSD(TIeGPXnU><``Hb8b{l8uEZ+U>%WbajgZ9>z|h@*^RS3~u~9&Ced99_
+z=P~dw%Gd%Z^q`*^=U-+mu<<*%E&_6Cf1o}e_iH1u1u(Q0a4&%1hZ~cEs7#uT@*I0L
+zK3X%@xfGDEZA?4>f0e1Kb6{aiMVxB|Quq0LnpmSZf^DiPlLEXHx1B@+Am9`{=YA2H
+z5w`)Ic2T`tzo=#ipoZh-v+kV&9HX<HxUmS_l`EEy9k!2ZB@SerMSy6n<{1kQqn~^|
+zS1SKHmi;G2i3AY&EZYuSRkm=SYWMCSi5EAQ^0bLXytj6O%YZSJq4h~yKS)J#i5;jJ
+z>wnYd^_{TAdt;nO1+sUNj%dj?`mzXciXW(jN#i6IKurW5cCU!LxQ$go^G>CF*hmK-
+z2Yayj2exx}yM|wa4{TjgNB0b3)rJUvX<KZq#yR&u<O@kVB(XgieOc@@KTu7T=xs^>
+z5y<G1Fl)AQ?rOtucjp#i`5RsdAJ-!%`YvH1>s%v{QxlVzz=7cPeo;l=KCCvt;|zGt
+zb?I)S^L<o#jK8AtV1g9ZF>P7^QIx1c=z!<`nBdvE?+!?QWD%$Lm(-0(l8egKlekDk
+zHc#T$$d=?P5uEE6)fJ6w*S<c`mpPo0xe<b%Bz}!-Nj^8GqGs*(8kRS*t#`d80SpI@
+zZV_QS3$+!DA|J9uojkdSmzzoMld}xbLy&K`e4c@fMxN`WsxFFi(q^P7p*+q#6X4v|
+zKcdAC5ORLCRJmd*P;Q2wwSBY*U^rktn>oUwbxbHYS|Hmd1otY4TTw1A^xwcMBl#Ax
+z_L+oSD1=SmGCxpfjkMpL@5T1WxZeSBV$wRsMD2+64dcS{m0k(&ZU|5GzJ%RppGA=a
+zA)tierS(4U6!c-ckHn2mSe=}FMBoP?ZW}A=ob?yN33=8x1&q{i?K{C)d%qAeRR|xD
+z9E3Z8GM>U6L6k-0Es}4D;BT2KZmaj+TGUQqJhsGG_YMdSU#DGisZf2Tzl0U_h!_$>
+zX1Xvljo`i_;*s>CnM_1h0F3-sfU=wn7yG5k!%~~&HvG%?xt|gXcL2z(Z4n*J^aC}o
+z-b0w7;@b915t#+z(-7>v?yL9wHz;pG_&SLtAphW(Dvvf=cQhjets_7)0OI%*viAO@
+zb<;@yVv_G>geNq5^cknEMmACBy^yu%g^&vb;%v~KT$+J8G0BEZqjuA}KB@&U&;y?t
+z_oomvE{Z&KFMPdFUD#+eXok$%XK=IbaRh!Oz?4QYqSvt?SZIanf;8|nYCrDvQ7M2z
+zuYC|L>oft6PFjv8+71<Bp-}xq2k}WeetqI=cz|07T$?MZQCC_|s{jgF=M4~dSz&nZ
+zSgAhP=-z#ptf9qG<^aN)AtKQn@5fc}$m<Z6LAl2Q9|Q6D<dXV(qn9IwV@2x?*(@`Y
+zV$Gu92!ZU>DxR8ut-2a+lu+H3RGd+LrZSwvV9B8t@sCEYdd0=7Spe=@izcoi@uY~n
+z3Gy94-l44Zb_%&Y1inyw2>RjzZr+ZoK`ez}IYTK~!hi^Cue=Maz7WzU!U)H11g4ER
+zzc&wHJx@NvQ2q>XP$2J8!ndNu@vxBqo6*AFLTeg?(*fD>zX3vC>6et2dJQQGKpRsg
+z(E1D*0d%=0i~x)PI)4hN-PXxH2&=bH<ZTFC5t#y_pOBgDejGijB-afi08u?MSFGN%
+zA>yMCRDUS$@4B{JeK!c8zgV{GZG9GcGshy6`R%CsXSNHB5ddHW(BZd%W(24+oR|^7
+zi~t>f7hpyJGXj`J;7A%UQ-GNQ%oJd513UX+kXZwmHGo+Im^Hx2hcC=Vkl6?_TfrK(
+zo=5EqA!ZF=)&OP=VAcR;4X{BCn2jK_5o9)k%tnye2r@5(w0;|4?gCopu>BFt8o;ap
+z%o@O~0Y={%An!RVTd#mIG@_b~pgJ=PagiUCf1qRT(Ygl6d+rNKD{+jJ1S{eGxxva`
+zN4j3<v**FGex`$jO)UmP&drt7RXT8M6+ppre-FWtI)H)vm?A$1!zZ9B1ODq+9#!lZ
+z=ymoAEt~?usonZDa|x@n>Xo8N!oOAl40z5Qid>xpfU!-+0Lc&iKy9~nwbW!0*0t6v
+zfIjqwmh(#bN2^;&c@y^~7x;miqbm!o0*FB6J$Jqc&ejFc#Q7fsQLRE-sa+<$j<<C2
+zqFn%=lx=;it+jG>u`$Zy2*dC72bIfo!qhH++9)topYM@4#gud=)5)<I;^JJXtbJrn
+zMF3Gp)T(B?&ebAvQYUvz`nhqX0CW3`>X&J>m6`yC!PW{Y3TFd29wOt@NTMTS5&?l*
+zooac(9)k$d$}x2T3<IxK^Y-j7iC6~#wPH*YNMzDVY*UIWf+~qOMI->3m#TWAe-MRs
+z<j^(&v?CeQMsfy>0FraoQ65GB9o3!5lQ9BF&RIu!7y)!tcP3B92p~CU9pzyJ&{5r)
+zJQ*W^<eYVshY>(Wb!YNqi~y2z)=?ft03Fqx$&)bxNX}VDdHe@_EKSVJ%bP*~0000<
+KMNUMnLSTYf10?DI
+
+diff --git .idea/caches/build_file_checksums.ser .idea/caches/build_file_checksums.ser
+index 2ef33c75eee212ccfed057f632703fb710ac87b5..6b75cbee62fec40ea5440741f0fea720872f7211
+GIT binary patch
+literal 696
+zc${1FmVvdnh`~NNKUXg?FQq6yGexf?KR>5fFEb@IQ7^qHF(oHeub?PDD>b=9F91S2
+zm1gFoxMk*~I%lLNXBU^|7Q2L-Ts|(GuF1r}<i#MFTj`TnT;dMa8(f)}9Fm!vT3nKt
+zTj0aMpIeEdv4nx&Co8cmQNOe#Ge_SyvB0{bfPsNAo$K_Q-#~W>g5>l-a(W(##Th_(
+zR`y#54~r#SWM*J;W8likPfT%3OfJbU@?_vF$tX%K&dAS6sVJ~_U;qK0at<IV0K}Xn
+z3<8M-1u;n=r$fC}TExH<?X>2z_zyOYkOxc*3?Qo+1mp{sE(uG08**eqWk$x{)7wfI
+zRGh71LW@(2iensOpn78vAybfARFaumTw2Ib$G`?M;EHU|&3=YWEH4{4XT160R0s59
+zacW6PW?p(R%x1XS=RWfvAK!5B%8G+GI4^EH-B!XNS&@@jTvC>qTAq`cgz8?nu22yl
+z3#EPRlNckCJ$2Q02bD1JU{`o__ob6HkGJW13muO>c6RGzU?}9|Cnx4$b+@8Ihf%?C
+z|7!;y6iv%neP~GugH%OPYI0?APHGXzJvbb*u=v!<17GFuz9{7NJY9C~0?-Rp6+q7d
+zonMq#REa~E^^#=6SF>k`NF8H;v6V%$rG!BcPmq4@WnQ%>VX5CH+ce{6X9bcf0Hp`~
+AkpKVy
+

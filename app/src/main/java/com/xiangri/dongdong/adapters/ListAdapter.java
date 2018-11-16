@@ -61,8 +61,9 @@ public class ListAdapter extends BaseAdapter {
         viewHolder.txt_content.setText(shopList.get(position).getSellerName());
         StaggeredGridLayoutManager staggeredGridLayoutManager = new StaggeredGridLayoutManager(2, StaggeredGridLayoutManager.VERTICAL);
         viewHolder.merchant.setLayoutManager(staggeredGridLayoutManager);
-        ShopAdapter shopAdapter = new ShopAdapter(mContext, shopList.get(position).getList());
+        ShopAdapter shopAdapter = new ShopAdapter(mContext);
         viewHolder.merchant.setAdapter(shopAdapter);
+        shopAdapter.setList(shopList.get(position).getList());
         return convertView;
     }
 

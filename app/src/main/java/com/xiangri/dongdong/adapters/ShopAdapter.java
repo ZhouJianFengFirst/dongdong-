@@ -20,8 +20,8 @@ public class ShopAdapter extends RecycleAdapter<ShopBean.DataBean.ListBean> {
     private Context mContext;
     private int i = 0;
 
-    public ShopAdapter(Context mcontext, List<ShopBean.DataBean.ListBean> datas) {
-        super(mcontext, datas);
+    public ShopAdapter(Context mcontext) {
+        super(mcontext);
         this.mContext = mcontext;
     }
 

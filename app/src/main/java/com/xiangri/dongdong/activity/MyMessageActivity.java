@@ -37,11 +37,11 @@ public class MyMessageActivity extends BaseActivity<MyMessageActivityPerstener> 
     @Override
     protected void onResume() {
         super.onResume();
-        Bitmap bitmap = BitmapFactory.decodeFile("/sdcard/myHead/head.jpg");
-        if (bitmap != null){
-            Uri uri = Uri.parse(MediaStore.Images.Media.insertImage(getContentResolver(), bitmap, null, null));
-            delegate.setSimplDrawView(uri);
-        }
+           Bitmap bitmap = BitmapFactory.decodeFile("/sdcard/myHead/head.jpg");
+            if (bitmap != null) {
+                Uri uri = Uri.parse(MediaStore.Images.Media.insertImage(getContentResolver(), bitmap, null, null));
+                delegate.setSimplDrawView(uri);
+            }
     }
 
     @Override

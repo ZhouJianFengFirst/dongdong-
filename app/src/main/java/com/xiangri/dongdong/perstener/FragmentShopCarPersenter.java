@@ -3,11 +3,9 @@ package com.xiangri.dongdong.perstener;
 import android.content.Context;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.google.gson.Gson;
 import com.xiangri.dongdong.R;
@@ -24,7 +22,7 @@ import com.xiangri.dongdong.view.TopView;
 import java.util.HashMap;
 import java.util.Map;
 
-public class FragmentShopCarPersenter extends AppDelegate implements View.OnClickListener, CarShopAdapter.OkClick, TopView.BackListener {
+public class FragmentShopCarPersenter extends AppDelegate implements View.OnClickListener, TopView.BackListener, CarShopAdapter.ShopCarBackNumListener {
 
     private static final int CAR_LIST_REQUEST = 1;
     private Context mContext;
@@ -42,6 +40,7 @@ public class FragmentShopCarPersenter extends AppDelegate implements View.OnClic
     private static final int DELECT_CONTNET = 0x123;
     private TopView topView;
     private static final int CAR_LIST_CONTENT = 0x124;
+    private ImageView notShop;
 
     @Override
     protected int getLayoutId() {
@@ -51,9 +50,13 @@ public class FragmentShopCarPersenter extends AppDelegate implements View.OnClic
     @Override
     public void initData() {
         super.initData();
-
         //设置事件
         setEvent();
+        Boolean isLogion = (Boolean) SpUtil.getInserter(mContext).getSpData("login_flag", false);
+        if (!isLogion) {
+            DialogUtils dialogUtils = new DialogUtils(mContext);
+            dialogUtils.show();
+        }
     }
 
     private void setEvent() {
@@ -62,6 +65,7 @@ public class FragmentShopCarPersenter extends AppDelegate implements View.OnClic
         close = (TextView) getView(R.id.close);
         recyList = (RecyclerView) getView(R.id.recycar);
         txtDelete = (TextView) getView(R.id.txt_delete);
+        notShop = (ImageView) getView(R.id.image_notshop);
         ok = (TextView) getView(R.id.ok);
         topView = (TopView) getView(R.id.topview);
         topView.setListener(this);
@@ -69,6 +73,9 @@ public class FragmentShopCarPersenter extends AppDelegate implements View.OnClic
         txtDelete.setOnClickListener(this);
         ok.setOnClickListener(this);
         setClick(this, R.id.selectAll, R.id.close);
+        carAdapter = new CarAdapter(mContext);
+        carAdapter.setListener(this);
+        recyList.setAdapter(carAdapter);
     }
 
     @Override
@@ -107,8 +114,8 @@ public class FragmentShopCarPersenter extends AppDelegate implements View.OnClic
                     map.put("uid", uid);
                     map.put("pid", pid + "");
                     map.put("source", "android");
-                    carBean.getData().get(i).getList().remove(j);
                     getString(Http.DEL_SHOP_CAR_URL, DELECT_CONTNET, map);
+                    carBean.getData().get(i).getList().remove(j);
                 }
             }
             int size = carBean.getData().get(i).getList().size();
@@ -116,8 +123,13 @@ public class FragmentShopCarPersenter extends AppDelegate implements View.OnClic
                 carBean.getData().remove(i);
             }
         }
+        carAdapter.setList(carBean.getData());
 
-        carAdapter.notifyDataSetChanged();
+        if (carBean.getData().size() == 0) {
+            notShop.setVisibility(View.VISIBLE);
+        } else {
+            notShop.setVisibility(View.GONE);
+        }
         // notifyChange();
         /*getString(Http.GET_SHOP_CAR_URL + "?uid=" + uid + "", CAR_LIST_CONTENT, null);*/
     }
@@ -161,7 +173,7 @@ public class FragmentShopCarPersenter extends AppDelegate implements View.OnClic
     //设置合计和计算
     public void setContent() {
         total.setText("合计：" + priceAll);
-        close.setText("计算：(" + numAll + ")");
+        close.setText("结算：(" + numAll + ")");
         priceAll = 0.0;
         numAll = 0;
     }
@@ -181,7 +193,7 @@ public class FragmentShopCarPersenter extends AppDelegate implements View.OnClic
                     numAll = 0;
                     setContent();
                     toast("删除成功");
-                }else{
+                } else {
                     toast("删除失败");
                 }
                 show(false);
@@ -198,10 +210,12 @@ public class FragmentShopCarPersenter extends AppDelegate implements View.OnClic
         if (carList.contains(">")) {
             return;
         }
+
         if ("null".equals(carList)) {
-            toast("还没有商品");
+            notShop.setVisibility(View.VISIBLE);
             return;
         }
+        notShop.setVisibility(View.GONE);
         Gson gson = new Gson();
         carBean = gson.fromJson(carList, CarBean.class);
         if ("1".equals(carBean.getCode())) {
@@ -210,32 +224,15 @@ public class FragmentShopCarPersenter extends AppDelegate implements View.OnClic
         LinearLayoutManager linearLayoutManager = new LinearLayoutManager(mContext);
         linearLayoutManager.setOrientation(LinearLayoutManager.VERTICAL);
         recyList.setLayoutManager(linearLayoutManager);
-        carAdapter = new CarAdapter(mContext, carBean.getData());
-        carAdapter.setOkClick(this);
-        recyList.setAdapter(carAdapter);
+
+        carAdapter.setList(carBean.getData());
     }
 
-    @Override
-    public void Ok() {
-        priceAll = 0.0;
-        numAll = 0;
-        for (int i = 0; i < carBean.getData().size(); i++) {
-            for (int j = 0; j < carBean.getData().get(i).getList().size(); j++) {
-                if (carBean.getData().get(i).getList().get(j).isIschecked()) {
-                    CarBean.DataBean.ListBean listBean = carBean.getData().get(i).getList().get(j);
-                    priceAll += listBean.getPrice() * listBean.getSelectNum();
-                    numAll += listBean.getSelectNum();
-                }
-            }
-        }
-        setContent();
-    }
 
     public void notifyChange() {
         Boolean isLogion = (Boolean) SpUtil.getInserter(mContext).getSpData("login_flag", false);
         if (!isLogion) {
-            DialogUtils dialogUtils = new DialogUtils(mContext);
-            dialogUtils.show();
+            return;
         }
         String uid = getUid();
         //设置列表的网络数据
@@ -277,5 +274,21 @@ public class FragmentShopCarPersenter extends AppDelegate implements View.OnClic
     public void failString(String msg) {
         super.failString(msg);
         toast(msg);
+    }
+
+    @Override
+    public void back(int num) {
+        priceAll = 0.0;
+        numAll = 0;
+        for (int i = 0; i < carBean.getData().size(); i++) {
+            for (int j = 0; j < carBean.getData().get(i).getList().size(); j++) {
+                if (carBean.getData().get(i).getList().get(j).isIschecked()) {
+                    CarBean.DataBean.ListBean listBean = carBean.getData().get(i).getList().get(j);
+                    priceAll += listBean.getPrice() * num;
+                    numAll += 1;
+                }
+            }
+        }
+        setContent();
     }
 }

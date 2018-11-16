@@ -35,4 +35,7 @@ public class Http {
     public static final String RIGHT_URL = BASE_URL+"/product/getProductCatagory?cid=";
     //查詢商品
     public static final String SCAN_SHOP_URL = "/product/searchProducts";
+
+    //修改昵称
+    public static final String UPDATA_NICKNAME = "/user/updateNickName";
 }

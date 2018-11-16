@@ -24,7 +24,7 @@ import com.xiangri.dongdong.view.WaterView;
 import java.util.ArrayList;
 import java.util.List;
 
-public class FragmentMePersenter extends AppDelegate implements View.OnClickListener{
+public class FragmentMePersenter extends AppDelegate implements View.OnClickListener {
 
     private Context mContext;
     private WaterView water;
@@ -32,6 +32,7 @@ public class FragmentMePersenter extends AppDelegate implements View.OnClickList
     private List<MeListBean> names = new ArrayList<>();
     private ImageView userImage;
     private TextView showUser;
+    private MeListAdapter meListAdapter;
 
     @Override
     protected int getLayoutId() {
@@ -52,48 +53,48 @@ public class FragmentMePersenter extends AppDelegate implements View.OnClickList
         setEvent();
         //设置adapter
         setAdapter();
-
     }
 
     private void setAdapter() {
-        names.add(new MeListBean("位置",R.drawable.address));
-        names.add(new MeListBean("收藏",R.drawable.shoucang));
-        names.add(new MeListBean("个人信息",R.drawable.me));
-        names.add(new MeListBean("钱包",R.drawable.money));
-        names.add(new MeListBean("設置",R.drawable.setting));
+        names.add(new MeListBean("位置", R.drawable.address));
+        names.add(new MeListBean("收藏", R.drawable.shoucang));
+        names.add(new MeListBean("个人信息", R.drawable.me));
+        names.add(new MeListBean("钱包", R.drawable.money));
+        names.add(new MeListBean("設置", R.drawable.setting));
         LinearLayoutManager layoutManager = new LinearLayoutManager(mContext);
         layoutManager.setOrientation(LinearLayoutManager.VERTICAL);
         list.setLayoutManager(layoutManager);
-        MeListAdapter meListAdapter = new MeListAdapter(mContext, names);
         list.setAdapter(meListAdapter);
+        meListAdapter.setList(names);
     }
 
     private void setEvent() {
-       water =  (WaterView)getView(R.id.water);
-       list = (RecyclerView)getView(R.id.show_me_list);
-         showUser= (TextView) getView(R.id.show_user);
-       //水波纹设置监听
-       water.setLisener(new WaterView.AnimalLisener() {
-                @Override
+        water = (WaterView) getView(R.id.water);
+        list = (RecyclerView) getView(R.id.show_me_list);
+        showUser = (TextView) getView(R.id.show_user);
+        //水波纹设置监听
+        water.setLisener(new WaterView.AnimalLisener() {
+            @Override
             public void getHeight(int y) {
                 RelativeLayout.LayoutParams layoutParams = (RelativeLayout.LayoutParams) list.getLayoutParams();
-                layoutParams.setMargins(0,0,0,y);
+                layoutParams.setMargins(0, 0, 0, y);
                 list.setLayoutParams(layoutParams);
             }
         });
         userImage = (ImageView) getView(R.id.userimage);
         userImage.setOnClickListener(this);
+        meListAdapter = new MeListAdapter(mContext);
     }
 
     @Override
     public void onClick(View v) {
-        switch (v.getId()){
+        switch (v.getId()) {
             case R.id.userimage:
-               Boolean flag = (Boolean) SpUtil.getInserter(mContext).getSpData("login_flag",false);
-                if (flag){
-                    ((MainActivity)mContext).startActivity(new Intent(mContext, MyMessageActivity.class));
-                }else {
-                    ((MainActivity)mContext).startActivity(new Intent(mContext, LoginActivity.class));
+                Boolean flag = (Boolean) SpUtil.getInserter(mContext).getSpData("login_flag", false);
+                if (flag) {
+                    ((MainActivity) mContext).startActivity(new Intent(mContext, MyMessageActivity.class));
+                } else {
+                    ((MainActivity) mContext).startActivity(new Intent(mContext, LoginActivity.class));
                 }
                 break;
         }
@@ -102,5 +103,10 @@ public class FragmentMePersenter extends AppDelegate implements View.OnClickList
     public void setUserMessage(String username) {
         showUser.setText(username);
         userImage.setImageBitmap(BitmapFactory.decodeFile("/sdcard/myHead/head.jpg"));
+    }
+
+    public void setNotLoginUserMessage() {
+        showUser.setText("未登录");
+        userImage.setImageResource(R.drawable.login);
     }
 }

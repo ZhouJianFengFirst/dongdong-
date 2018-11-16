@@ -19,6 +19,8 @@ public class MeFragment extends BaseFragment<FragmentMePersenter> {
         if (login_flag){
             String username = (String) SpUtil.getInserter(getActivity()).getSpData("username", "");
             delegate.setUserMessage(username);
+        }else{
+            delegate.setNotLoginUserMessage();
         }
     }
 }

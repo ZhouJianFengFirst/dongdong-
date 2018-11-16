@@ -18,9 +18,8 @@ public abstract class RecycleAdapter<T> extends RecyclerView.Adapter<ViewHolder>
     private List<T> list = new ArrayList<>();
     private Context mcontext;
 
-    public RecycleAdapter(Context mcontext, List<T> datas) {
+    public RecycleAdapter(Context mcontext) {
         this.mcontext = mcontext;
-        this.list = datas;
     }
 
     public void setList(List<T> datas) {

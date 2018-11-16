@@ -62,8 +62,9 @@ public class RightListAdapter extends BaseAdapter {
         viewHolder.txt_content.setText(shopList.get(position).getName());
         StaggeredGridLayoutManager staggeredGridLayoutManager = new StaggeredGridLayoutManager(2, StaggeredGridLayoutManager.VERTICAL);
         viewHolder.merchant.setLayoutManager(staggeredGridLayoutManager);
-        RightShopAdapter rightShopAdapter = new RightShopAdapter(mContext, shopList.get(position).getList());
+        RightShopAdapter rightShopAdapter = new RightShopAdapter(mContext);
         viewHolder.merchant.setAdapter(rightShopAdapter);
+        rightShopAdapter.setList(shopList.get(position).getList());
         return convertView;
     }
 

@@ -19,8 +19,8 @@ public class RightShopAdapter extends RecycleAdapter<RightShopBean.DataBean.List
 
     private Context mContext;
 
-    public RightShopAdapter(Context mcontext, List<RightShopBean.DataBean.ListBean> datas) {
-        super(mcontext, datas);
+    public RightShopAdapter(Context mcontext) {
+        super(mcontext);
         this.mContext = mcontext;
     }
 

@@ -13,14 +13,14 @@ import java.util.List;
 public class CarAdapter extends RecycleAdapter<CarBean.DataBean> {
 
     private Context mContext;
-    private CarShopAdapter.OkClick okClick;
+    private CarShopAdapter.ShopCarBackNumListener listener;
 
-    public void setOkClick(CarShopAdapter.OkClick okClick) {
-        this.okClick = okClick;
+    public void setListener(CarShopAdapter.ShopCarBackNumListener listener) {
+        this.listener = listener;
     }
 
-    public CarAdapter(Context mcontext, List<CarBean.DataBean> datas) {
-        super(mcontext, datas);
+    public CarAdapter(Context mcontext) {
+        super(mcontext);
         this.mContext = mcontext;
     }
 
@@ -34,11 +34,13 @@ public class CarAdapter extends RecycleAdapter<CarBean.DataBean> {
         viewHolder.setText(R.id.txt_content, dataBean.getSellerName());
         View view = viewHolder.getRootView();
         RecyclerView shopMerchant = (RecyclerView) view.findViewById(R.id.shop_merchant);
+
         StaggeredGridLayoutManager staggeredGridLayoutManager = new StaggeredGridLayoutManager(1, StaggeredGridLayoutManager.VERTICAL);
         shopMerchant.setLayoutManager(staggeredGridLayoutManager);
-        CarShopAdapter carShopAdapter = new CarShopAdapter(mContext, dataBean.getList());
-        carShopAdapter.setOkClick(okClick);
+        CarShopAdapter carShopAdapter = new CarShopAdapter(mContext);
+        carShopAdapter.setListener(listener);
         shopMerchant.setAdapter(carShopAdapter);
+        carShopAdapter.setList(dataBean.getList());
     }
 
     @Override

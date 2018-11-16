@@ -13,8 +13,8 @@ import java.util.List;
 
 public class MeListAdapter extends RecycleAdapter<MeListBean>   {
     private Context mContext;
-    public MeListAdapter(Context mcontext, List<MeListBean> datas) {
-        super(mcontext, datas);
+    public MeListAdapter(Context mcontext) {
+        super(mcontext);
         this.mContext = mcontext;
     }
 

@@ -120,9 +120,10 @@ public class ShopListActivityPerstener extends AppDelegate implements View.OnCli
             page = 0;
         }
         StaggeredGridLayoutManager manager = new StaggeredGridLayoutManager(2,StaggeredGridLayoutManager.VERTICAL);
-        SearShopAdapter searShopAdapter = new SearShopAdapter(mContext,searShopBean.getData());
+        SearShopAdapter searShopAdapter = new SearShopAdapter(mContext);
         shopList.setLayoutManager(manager);
         shopList.setAdapter(searShopAdapter);
+        searShopAdapter.setList(searShopBean.getData());
     }
 
     @Override

@@ -48,7 +48,7 @@ public class JiuPageAdapter extends PagerAdapter {
         GridLayoutManager gridLayoutManager = new GridLayoutManager(mContext, 4);
         recyclerView.setLayoutManager(gridLayoutManager);
 
-        JiuPageRecyAdapter adapter = new JiuPageRecyAdapter(mContext,onePage);
+        JiuPageRecyAdapter adapter = new JiuPageRecyAdapter(mContext);
         recyclerView.setAdapter(adapter);
         if (position == 0) {
             adapter.setList(onePage);

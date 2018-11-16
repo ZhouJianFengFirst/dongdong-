@@ -1,6 +1,7 @@
 package com.xiangri.dongdong.adapters;
 
 import android.content.Context;
+import android.util.Log;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.ImageView;
@@ -8,14 +9,15 @@ import android.widget.Toast;
 
 import com.xiangri.dongdong.R;
 import com.xiangri.dongdong.entity.CarBean;
+import com.xiangri.dongdong.view.ShopCarView;
 
 import java.util.List;
 
 public class CarShopAdapter extends RecycleAdapter<CarBean.DataBean.ListBean> {
     private Context mContext;
 
-    public CarShopAdapter(Context mcontext, List<CarBean.DataBean.ListBean> datas) {
-        super(mcontext, datas);
+    public CarShopAdapter(Context mcontext) {
+        super(mcontext);
         this.mContext = mcontext;
     }
 
@@ -26,84 +28,52 @@ public class CarShopAdapter extends RecycleAdapter<CarBean.DataBean.ListBean> {
 
     @Override
     protected void convert(final ViewHolder viewHolder, final CarBean.DataBean.ListBean listBean, final int postion) {
+        final ShopCarView shopCarView = (ShopCarView) viewHolder.getView(R.id.shopcarview);
+        shopCarView.setListener(new ShopCarView.DataBackListener() {
+            @Override
+            public void touchSelect(boolean ischecked) {
+                listBean.setIschecked(ischecked);
+                notifyItemChanged(postion);
+                shopCarView.setIsChecked(ischecked);
+                listener.back(listBean.getNum());
+            }
 
+            @Override
+            public void backNum(int num) {
+                listBean.setNum(num);
+                notifyItemChanged(postion);
+                shopCarView.setShopNum(num);
+                listener.back(num);
+            }
+        });
+        if (listBean.isIschecked()) {
+            shopCarView.setIsChecked(true);
+        } else {
+            shopCarView.setIsChecked(false);
+        }
+        String[] split = listBean.getImages().split("\\|");
+        shopCarView.setShopImage(split[0]);
+        shopCarView.setTitle(listBean.getTitle());
+        shopCarView.setPrice("￥价格：" + listBean.getPrice() + "");
+        shopCarView.setShopNum(listBean.getNum());
     }
 
     @Override
     public void convertPrent(final ViewHolder viewHolder, final List<CarBean.DataBean.ListBean> t, final int postion) {
-        final CarBean.DataBean.ListBean listBean = t.get(postion);
-        String[] split = listBean.getImages().split("\\|");
-        viewHolder.setText(R.id.shop_title, listBean.getTitle())
-                .setImageUrl(R.id.shop_image, split[0])
-                .setText(R.id.shop_price, "价格：" + listBean.getPrice() + "");
-        if (listBean.isIschecked()) {
-            viewHolder.setImageResource(R.id.iv_select, R.drawable.cricle_yes);
-        } else {
-            viewHolder.setImageResource(R.id.iv_select, R.drawable.cricle_no);
-        }
 
-        //设定选择框
-        viewHolder.getView(R.id.iv_select).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (listBean.isIschecked()) {
-                    listBean.setIschecked(false);
-                    viewHolder.setImageResource(R.id.iv_select, R.drawable.cricle_no);
-                    okClick.Ok();
-                    notifyItemChanged(postion);
-                } else {
-                    listBean.setIschecked(true);
-                    viewHolder.setImageResource(R.id.iv_select, R.drawable.cricle_yes);
-                    okClick.Ok();
-                    notifyItemChanged(postion);
-                }
-            }
-        });
-
-        EditText etcontent = (EditText) viewHolder.getView(R.id.et_content);
-
-        etcontent.setText(t.get(postion).getSelectNum()+"");
-        viewHolder.setClick(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                switch (v.getId()) {
-                    case R.id.add:
-                        int num = t.get(postion).getSelectNum();
-                        num++;
-                        setContent(num, t, postion);
-                        break;
-                    case R.id.remove:
-                        int num1 = t.get(postion).getSelectNum();
-                        num1 --;
-                        setContent(num1, t, postion);
-                        break;
-                }
-            }
-        }, R.id.add, R.id.remove);
-    }
-
-
-    public void setContent(int num,  List<CarBean.DataBean.ListBean> t, int postion) {
-        if (num < 1) {
-            toase("不能小于1呦");
-            return;
-        }
-        t.get(postion).setSelectNum(num);
-        notifyItemChanged(postion);
-        okClick.Ok();
-    }
-
-    public interface OkClick {
-        void Ok();
-    }
-
-    private OkClick okClick;
-
-    public void setOkClick(OkClick okClick) {
-        this.okClick = okClick;
     }
 
     public void toase(String msg) {
         Toast.makeText(mContext, msg, Toast.LENGTH_SHORT).show();
+    }
+
+    public interface ShopCarBackNumListener {
+        void back(int num);
+    }
+
+    public ShopCarBackNumListener listener;
+
+    public void setListener(ShopCarBackNumListener listener) {
+        this.listener = listener;
     }
 }

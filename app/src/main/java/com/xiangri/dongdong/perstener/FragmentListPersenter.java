@@ -28,6 +28,7 @@ public class FragmentListPersenter extends AppDelegate implements LeftRecyAdapte
     private RecyclerView leftRecy;
     private ListView reightList;
     private RightListAdapter listAdapter;
+    private LeftRecyAdapter leftRecyAdapter;
 
     @Override
     public void initData() {
@@ -37,9 +38,9 @@ public class FragmentListPersenter extends AppDelegate implements LeftRecyAdapte
         setEvent();
 
         //设置左面的列表进行网络请求
-        getString(Http.JIU_URL, CONTENT_REQUEST,null);
+        getString(Http.JIU_URL, CONTENT_REQUEST, null);
 
-        getString(Http.RIGHT_URL+"1",RIGHT_REQUEST,null);
+        getString(Http.RIGHT_URL + "1", RIGHT_REQUEST, null);
     }
 
     private void setEvent() {
@@ -49,6 +50,8 @@ public class FragmentListPersenter extends AppDelegate implements LeftRecyAdapte
         reightList = (ListView) getView(R.id.right);
         listAdapter = new RightListAdapter(mContext);
         reightList.setAdapter(listAdapter);
+        leftRecyAdapter = new LeftRecyAdapter(mContext);
+        leftRecyAdapter.setListenerOk(this);
     }
 
     @Override
@@ -92,14 +95,13 @@ public class FragmentListPersenter extends AppDelegate implements LeftRecyAdapte
         LinearLayoutManager linearLayoutManager = new LinearLayoutManager(mContext);
         linearLayoutManager.setOrientation(LinearLayoutManager.VERTICAL);
         leftRecy.setLayoutManager(linearLayoutManager);
-        LeftRecyAdapter leftRecyAdapter = new LeftRecyAdapter(mContext, jiuBean.getData());
-        leftRecyAdapter.setListenerOk(this);
         leftRecy.setAdapter(leftRecyAdapter);
+        leftRecyAdapter.setList(jiuBean.getData());
     }
 
     @Override
     public void clickOk(int cid) {
-        getString(Http.RIGHT_URL+cid,RIGHT_REQUEST,null);
+        getString(Http.RIGHT_URL + cid, RIGHT_REQUEST, null);
     }
 
     public void setRightAdapter(String data) {

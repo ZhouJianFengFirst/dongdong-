@@ -12,8 +12,8 @@ import java.util.List;
 
 public class LeftRecyAdapter extends RecycleAdapter<JiuDataBean> {
 
-    public LeftRecyAdapter(Context mcontext, List<JiuDataBean> datas) {
-        super(mcontext, datas);
+    public LeftRecyAdapter(Context mcontext) {
+        super(mcontext);
     }
 
 

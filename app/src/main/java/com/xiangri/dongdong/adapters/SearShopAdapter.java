@@ -13,8 +13,8 @@ public  class SearShopAdapter   extends RecycleAdapter<SearShopBean.DataBean>{
 
     private Context mContext;
 
-    public SearShopAdapter(Context mcontext, List<SearShopBean.DataBean> datas) {
-        super(mcontext, datas);
+    public SearShopAdapter(Context mcontext) {
+        super(mcontext);
         this.mContext = mcontext;
     }
 

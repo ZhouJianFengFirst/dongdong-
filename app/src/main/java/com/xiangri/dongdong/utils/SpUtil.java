@@ -67,4 +67,9 @@ public class SpUtil {
     public  boolean commit() {
         return edit.commit();
     }
+
+    public SpUtil cancle(){
+        edit.clear();
+        return this;
+    }
 }

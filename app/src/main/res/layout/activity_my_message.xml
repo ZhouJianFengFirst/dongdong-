@@ -1,22 +1,80 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:background="@color/colore8e8e8"
     tools:context=".activity.MyMessageActivity">
 
     <com.xiangri.dongdong.view.TopView
         android:id="@+id/top_view"
-        app:title="个人信息"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"></com.xiangri.dongdong.view.TopView>
+        android:layout_height="wrap_content"
+        app:title="个人信息"></com.xiangri.dongdong.view.TopView>
 
-        <include
-            layout="@layout/layout_message"
-            android:layout_below="@id/top_view"
+    <include
+        layout="@layout/layout_message"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/top_view" />
+
+    <TextView
+        android:id="@+id/txt_user_cancle"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:layout_alignParentBottom="true"
+        android:layout_margin="10dp"
+        android:background="@drawable/et_solid_d43c3c_bg"
+        android:gravity="center"
+        android:text="注销登录"
+        android:textColor="@color/colore8e8e8"
+        android:textSize="20sp" />
+
+    <LinearLayout
+        android:id="@+id/updata_layout"
+        android:layout_width="match_parent"
+        android:layout_height="300dp"
+        android:layout_alignParentBottom="true"
+        android:background="@drawable/et_solid_d43c3c_bg"
+        android:orientation="vertical"
+        android:visibility="gone">
+
+        <LinearLayout
+            android:orientation="horizontal"
+            android:weightSum="1"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"/>
+            android:layout_height="wrap_content">
+            <EditText
+                android:id="@+id/et_updata_nickname"
+                android:layout_width="0dp"
+                android:layout_weight="0.92"
+                android:layout_height="50dp"
+                android:layout_margin="20sp"
+                android:background="@drawable/et_fffall_bg"
+                android:hint="請輸入要修改的名称"
+                android:paddingLeft="10dp" />
+
+            <ImageView
+                android:id="@+id/image_down"
+                android:layout_width="0dp"
+                android:layout_height="30dp"
+                android:layout_weight="0.08"
+                android:layout_marginRight="4dp"
+                android:layout_gravity="center"
+                android:src="@drawable/down"/>
+        </LinearLayout>
+
+        <Button
+            android:id="@+id/btn_updata"
+            android:layout_width="80dp"
+            android:layout_height="50dp"
+            android:layout_gravity="center"
+            android:background="@drawable/et_fffall_bg"
+            android:gravity="center"
+            android:text="提交"
+            android:textColor="@color/colore000"
+            android:textSize="20sp" />
+    </LinearLayout>
 
 </RelativeLayout>
