@@ -93,10 +93,6 @@ public class SelfView extends RelativeLayout implements View.OnClickListener {
 /*          layoutParams.leftMargin = 10;
             layoutParams.rightMargin = 10;*/
             viewtxt.setLayoutParams(layoutParams);
-
-
-
-
         }
 
         for ( int i = 0; i <linearhor.getChildCount() ; i++) {
@@ -117,7 +113,6 @@ public class SelfView extends RelativeLayout implements View.OnClickListener {
         params.leftMargin=10;
         params.rightMargin=10;
         linearhor.setLayoutParams(params);
-
     }
 
     @Override

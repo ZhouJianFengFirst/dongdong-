@@ -6,7 +6,6 @@ import android.support.v7.app.AppCompatActivity;
 
 import com.xiangri.dongdong.mvp.view.AppDelegate;
 
-import butterknife.ButterKnife;
 
 public abstract class BaseActivity<T extends AppDelegate> extends AppCompatActivity {
 
@@ -30,7 +29,6 @@ public abstract class BaseActivity<T extends AppDelegate> extends AppCompatActiv
         delegate.initContext(this);
         delegate.creat(getLayoutInflater(), null, savedInstanceState);
         setContentView(delegate.getRootView());
-        ButterKnife.bind(this);
         initWeght();
         delegate.initData();
     }

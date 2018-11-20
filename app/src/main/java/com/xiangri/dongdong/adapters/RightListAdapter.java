@@ -6,6 +6,7 @@ import android.support.v7.widget.StaggeredGridLayoutManager;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.xiangri.dongdong.R;
@@ -47,13 +48,15 @@ public class RightListAdapter extends BaseAdapter {
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
 
-        ViewHolder viewHolder ;
+        ViewHolder viewHolder;
 
-        if (convertView == null){
+        if (convertView == null) {
             viewHolder = new ViewHolder();
-            convertView = View.inflate(mContext, R.layout.layout_iteam_list,null);
+            convertView = View.inflate(mContext, R.layout.layout_iteam_list, null);
             viewHolder.txt_content = convertView.findViewById(R.id.txt_content);
-            viewHolder.merchant = (RecyclerView) convertView.findViewById(R.id.shop_merchant); convertView.setTag(viewHolder);
+            viewHolder.merchant = (RecyclerView) convertView.findViewById(R.id.shop_merchant);
+            viewHolder.imageSelect = (ImageView) convertView.findViewById(R.id.shaohome_select);
+            convertView.setTag(viewHolder);
             convertView.setTag(viewHolder);
         } else {
             viewHolder = (ViewHolder) convertView.getTag();
@@ -64,12 +67,14 @@ public class RightListAdapter extends BaseAdapter {
         viewHolder.merchant.setLayoutManager(staggeredGridLayoutManager);
         RightShopAdapter rightShopAdapter = new RightShopAdapter(mContext);
         viewHolder.merchant.setAdapter(rightShopAdapter);
+        viewHolder.imageSelect.setVisibility(View.GONE);
         rightShopAdapter.setList(shopList.get(position).getList());
         return convertView;
     }
 
-     class ViewHolder{
-        TextView txt_content;
-       private RecyclerView merchant;
+    class ViewHolder {
+        private TextView txt_content;
+        private RecyclerView merchant;
+        private ImageView imageSelect;
     }
 }

@@ -22,6 +22,7 @@ import com.amap.api.maps.model.animation.Animation;
 import com.amap.api.maps.model.animation.RotateAnimation;
 import com.xiangri.dongdong.R;
 import com.xiangri.dongdong.utils.PermissionUtils;
+import com.xiangri.dongdong.utils.SpUtil;
 
 public class MapActivity extends AppCompatActivity implements LocationSource, AMapLocationListener {
 
@@ -169,8 +170,10 @@ public class MapActivity extends AppCompatActivity implements LocationSource, AM
                     && amapLocation.getErrorCode() == 0) {
                 mListener.onLocationChanged(amapLocation);// 显示系统小蓝点
                 String city = amapLocation.getCity();//获取城市
+                String address = amapLocation.getAddress();
                 double tude = amapLocation.getLatitude();//维度
                 double longitude = amapLocation.getLongitude();//经度
+                SpUtil.getInserter(this).saveData("address", address).commit();
             } else {
                 String errText = "定位失败," + amapLocation.getErrorCode() + ": " + amapLocation.getErrorInfo();
                 Log.e("AmapErr", errText);

@@ -9,7 +9,9 @@ import retrofit2.http.GET;
 import retrofit2.http.Multipart;
 import retrofit2.http.POST;
 import retrofit2.http.Part;
+import retrofit2.http.Query;
 import retrofit2.http.QueryMap;
+import retrofit2.http.QueryName;
 import retrofit2.http.Url;
 
 public interface BaseService {
@@ -22,5 +24,6 @@ public interface BaseService {
 
     @Multipart
     @POST("/file/upload")
-    Observable<ResponseBody> upload(@Part MultipartBody.Part part);
+    Observable<ResponseBody> upload(@Part MultipartBody.Part part, @Query("uid") String uid);
+
 }

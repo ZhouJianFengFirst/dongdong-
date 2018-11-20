@@ -50,6 +50,16 @@ public class SqlUtil {
        return historyEntityDao.loadAll();
     }
 
+    public  HistoryEntity queryByType(String type){
+        List<HistoryEntity> historyEntities = historyEntityDao.loadAll();
+        for (int i = 0 ; i < historyEntityDao.loadAll().size() ; i ++){
+            if (type.equals(historyEntities.get(i).getTpye())){
+                return historyEntities.get(i);
+            }
+        }
+        return null;
+    }
+
     public void deleteByKey(Long key){
         historyEntityDao.deleteByKey(key);
     }

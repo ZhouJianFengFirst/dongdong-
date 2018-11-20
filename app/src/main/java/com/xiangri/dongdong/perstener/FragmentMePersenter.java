@@ -11,6 +11,7 @@ import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
+import com.facebook.drawee.view.SimpleDraweeView;
 import com.xiangri.dongdong.MainActivity;
 import com.xiangri.dongdong.R;
 import com.xiangri.dongdong.activity.LoginActivity;
@@ -30,7 +31,7 @@ public class FragmentMePersenter extends AppDelegate implements View.OnClickList
     private WaterView water;
     private RecyclerView list;
     private List<MeListBean> names = new ArrayList<>();
-    private ImageView userImage;
+    private SimpleDraweeView userImage;
     private TextView showUser;
     private MeListAdapter meListAdapter;
 
@@ -81,7 +82,7 @@ public class FragmentMePersenter extends AppDelegate implements View.OnClickList
                 list.setLayoutParams(layoutParams);
             }
         });
-        userImage = (ImageView) getView(R.id.userimage);
+        userImage = (SimpleDraweeView) getView(R.id.userimage);
         userImage.setOnClickListener(this);
         meListAdapter = new MeListAdapter(mContext);
     }
@@ -100,9 +101,18 @@ public class FragmentMePersenter extends AppDelegate implements View.OnClickList
         }
     }
 
-    public void setUserMessage(String username) {
-        showUser.setText(username);
-        userImage.setImageBitmap(BitmapFactory.decodeFile("/sdcard/myHead/head.jpg"));
+    public void setUserMessage(String nickname, String address,String iocn) {
+        if ("null".equals(nickname)){
+            showUser.setText("请设置昵称");
+        }else{
+            showUser.setText(nickname);
+        }
+        if (iocn == null || "null".equals(iocn)|| "".equals(iocn)){
+            userImage.setImageResource(R.drawable.login);
+        }else {
+            String replace = iocn.replace("https:", "http:");
+            userImage.setImageURI(replace);
+        }
     }
 
     public void setNotLoginUserMessage() {

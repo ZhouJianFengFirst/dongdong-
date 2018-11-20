@@ -16,10 +16,12 @@ public class MeFragment extends BaseFragment<FragmentMePersenter> {
     public void onResume() {
         super.onResume();
         Boolean login_flag = (Boolean) SpUtil.getInserter(getActivity()).getSpData("login_flag", false);
-        if (login_flag){
-            String username = (String) SpUtil.getInserter(getActivity()).getSpData("username", "");
-            delegate.setUserMessage(username);
-        }else{
+        if (login_flag) {
+            String nickname = (String) SpUtil.getInserter(getActivity()).getSpData("nickname", "");
+            String address = (String) SpUtil.getInserter(getActivity()).getSpData("address", "");
+            String icon = (String) SpUtil.getInserter(getActivity()).getSpData("icon", "");
+            delegate.setUserMessage(nickname,address,icon);
+        } else {
             delegate.setNotLoginUserMessage();
         }
     }

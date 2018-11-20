@@ -7,6 +7,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -46,7 +47,7 @@ public class ListAdapter extends BaseAdapter {
     }
 
     @Override
-    public View getView(int position, View convertView, ViewGroup parent) {
+    public View getView(final int position, View convertView, ViewGroup parent) {
 
         ViewHolder viewHolder;
         if (convertView == null) {
@@ -54,6 +55,7 @@ public class ListAdapter extends BaseAdapter {
             convertView = LayoutInflater.from(mContext).inflate(R.layout.layout_iteam_list, null);
             viewHolder.txt_content = convertView.findViewById(R.id.txt_content);
             viewHolder.merchant = (RecyclerView) convertView.findViewById(R.id.shop_merchant);
+            viewHolder.shopHomeSelect = (ImageView) convertView.findViewById(R.id.shaohome_select);
             convertView.setTag(viewHolder);
         } else {
             viewHolder = (ViewHolder) convertView.getTag();
@@ -61,14 +63,16 @@ public class ListAdapter extends BaseAdapter {
         viewHolder.txt_content.setText(shopList.get(position).getSellerName());
         StaggeredGridLayoutManager staggeredGridLayoutManager = new StaggeredGridLayoutManager(2, StaggeredGridLayoutManager.VERTICAL);
         viewHolder.merchant.setLayoutManager(staggeredGridLayoutManager);
-        ShopAdapter shopAdapter = new ShopAdapter(mContext);
+        final ShopAdapter shopAdapter = new ShopAdapter(mContext);
         viewHolder.merchant.setAdapter(shopAdapter);
         shopAdapter.setList(shopList.get(position).getList());
+        viewHolder.shopHomeSelect.setVisibility(View.GONE);
         return convertView;
     }
 
     class ViewHolder {
         private TextView txt_content;
         private RecyclerView merchant;
+        private ImageView shopHomeSelect;
     }
 }

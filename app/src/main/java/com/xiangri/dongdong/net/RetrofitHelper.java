@@ -77,17 +77,12 @@ public class RetrofitHelper {
             return;
         }
 
-        MediaType mediaType = MediaType.parse("multipart/form-data;charset=utf-8");
-        RequestBody requestBody = new MultipartBody.Builder()
-                .setType(mediaType)
-                .addFormDataPart("file", "head.jpg", RequestBody.create(MediaType.parse("image/jpg"), file))
-                .addFormDataPart("uid", uid)
-                .build();
-        MultipartBody.Part part = MultipartBody.Part.create(requestBody);
-        BaseService baseService = retrofit.create(BaseService.class);
-        baseService.upload(part)
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(ob);
+        RequestBody requestBody = RequestBody.create(MediaType.parse("multipart/form-data;charset=utf-8"),file);
+        MultipartBody.Part part = MultipartBody.Part.createFormData("file","head.jpg",requestBody);
+        retrofit.create(BaseService.class)
+        .upload(part,uid)
+        .subscribeOn(Schedulers.io())
+        .observeOn(AndroidSchedulers.mainThread())
+        .subscribe(ob);
     }
 }

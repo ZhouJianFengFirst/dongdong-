@@ -12,10 +12,13 @@ import com.xiangri.dongdong.R;
 import com.xiangri.dongdong.adapters.CarAdapter;
 import com.xiangri.dongdong.adapters.CarShopAdapter;
 import com.xiangri.dongdong.entity.CarBean;
+import com.xiangri.dongdong.entity.HistoryEntity;
 import com.xiangri.dongdong.entity.UserBean;
 import com.xiangri.dongdong.mvp.view.AppDelegate;
 import com.xiangri.dongdong.net.Http;
+import com.xiangri.dongdong.sql.SqlUtil;
 import com.xiangri.dongdong.utils.DialogUtils;
+import com.xiangri.dongdong.utils.NetworkUtils;
 import com.xiangri.dongdong.utils.SpUtil;
 import com.xiangri.dongdong.view.TopView;
 
@@ -184,9 +187,9 @@ public class FragmentShopCarPersenter extends AppDelegate implements View.OnClic
         switch (type) {
             case CAR_LIST_REQUEST:
                 setCarList(data);
+                SqlUtil.getInstens().insert(CAR_LIST_REQUEST+"",data);
                 break;
             case DELECT_CONTNET:
-
                 UserBean userBean = new Gson().fromJson(data, UserBean.class);
                 if ("0".equals(userBean.getCode())) {
                     priceAll = 0.0;
@@ -224,7 +227,6 @@ public class FragmentShopCarPersenter extends AppDelegate implements View.OnClic
         LinearLayoutManager linearLayoutManager = new LinearLayoutManager(mContext);
         linearLayoutManager.setOrientation(LinearLayoutManager.VERTICAL);
         recyList.setLayoutManager(linearLayoutManager);
-
         carAdapter.setList(carBean.getData());
     }
 
@@ -236,7 +238,13 @@ public class FragmentShopCarPersenter extends AppDelegate implements View.OnClic
         }
         String uid = getUid();
         //设置列表的网络数据
+        if (!NetworkUtils.isConnected(mContext)){
+            HistoryEntity shopCraHistory = SqlUtil.getInstens().queryByType(CAR_LIST_REQUEST + "");
+            setCarList(shopCraHistory.getHistory());
+            return;
+        }
         getString(Http.GET_SHOP_CAR_URL + "?uid=" + uid + "", CAR_LIST_REQUEST, null);
+
     }
 
     public String getUid() {

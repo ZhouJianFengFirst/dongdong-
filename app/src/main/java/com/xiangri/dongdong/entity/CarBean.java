@@ -48,6 +48,15 @@ public class CarBean {
         private String sellerName;
         private String sellerid;
         private List<ListBean> list;
+        private boolean shopHomeSelect = false;
+
+        public boolean isShopHomeSelect() {
+            return shopHomeSelect;
+        }
+
+        public void setShopHomeSelect(boolean shopHomeSelect) {
+            this.shopHomeSelect = shopHomeSelect;
+        }
 
         public String getSellerName() {
             return sellerName;

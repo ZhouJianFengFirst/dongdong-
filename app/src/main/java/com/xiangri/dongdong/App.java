@@ -16,5 +16,6 @@ public    class App extends Application{
         Fresco.initialize(this);
         RetrofitHelper.getInstens().init(Http.BASE_URL+"/",this);
         SqlUtil.getInstens().init(this,"db");
+
     }
 }

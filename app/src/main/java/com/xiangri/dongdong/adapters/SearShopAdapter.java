@@ -35,6 +35,8 @@ public  class SearShopAdapter   extends RecycleAdapter<SearShopBean.DataBean>{
                 Intent intent = new Intent(mContext, ShowShopActivity.class);
                 intent.putExtra("pid",dataBean.getPid()+"");
                 intent.putExtra("url",dataBean.getDetailUrl());
+                intent.putExtra("title",dataBean.getTitle());
+                intent.putExtra("icont",dataBean.getImages());
                 ((ShopListActivity)mContext).startActivity(intent);
             }
         });

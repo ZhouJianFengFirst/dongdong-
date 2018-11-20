@@ -101,7 +101,7 @@ public class LoginActivityPerstener extends AppDelegate implements View.OnClickL
         Gson gson = new Gson();
         UserBean userBean = gson.fromJson(data, UserBean.class);
         if ("0".equals(userBean.getCode())){
-            SpUtil.getInserter(mContext).saveData("username",userBean.getData().getUsername()).putString("uid",userBean.getData().getUid()+"").putString("password",userBean.getData().getPassword()).putBoolean("login_flag",true).putString("token",userBean.getData().getToken()).putString("nickname",userBean.getData().getNickname()+"").commit();
+            SpUtil.getInserter(mContext).saveData("username",userBean.getData().getUsername()).putString("uid",userBean.getData().getUid()+"").putString("password",userBean.getData().getPassword()).putBoolean("login_flag",true).putString("token",userBean.getData().getToken()).putString("nickname",userBean.getData().getNickname()+"").putString("icon",userBean.getData().getIcon()+"").commit();
             ((LoginActivity)mContext).finish();
         }else {
             toast("用户友情提示：","用户名密码错误",4000);

@@ -1,12 +1,13 @@
 package com.xiangri.dongdong.perstener;
 
+import android.animation.ObjectAnimator;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
 import android.support.annotation.Nullable;
 import android.support.v4.view.ViewPager;
-import android.util.Log;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.AbsListView;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -21,12 +22,14 @@ import com.xiangri.dongdong.activity.SearchActivity;
 import com.xiangri.dongdong.adapters.JiuPageAdapter;
 import com.xiangri.dongdong.adapters.ListAdapter;
 import com.xiangri.dongdong.entity.BannerBean;
+import com.xiangri.dongdong.entity.HistoryEntity;
 import com.xiangri.dongdong.entity.JiuBean;
 import com.xiangri.dongdong.entity.JiuDataBean;
 import com.xiangri.dongdong.entity.ShopBean;
 import com.xiangri.dongdong.mvp.view.AppDelegate;
 import com.xiangri.dongdong.net.Http;
-import com.xiangri.dongdong.utils.SpUtil;
+import com.xiangri.dongdong.sql.SqlUtil;
+import com.xiangri.dongdong.utils.NetworkUtils;
 import com.xiangri.dongdong.view.HorseView;
 import com.yzq.zxinglibrary.android.CaptureActivity;
 import com.yzq.zxinglibrary.android.PermissionUtils;
@@ -52,6 +55,7 @@ public class FragmentHomePersenter extends AppDelegate implements View.OnClickLi
     private ViewPager viewPager;
     private List<JiuDataBean> onePage = new ArrayList<>();
     private List<JiuDataBean> towPage = new ArrayList<>();
+    private List<JiuDataBean> threePage = new ArrayList<>();
     private ViewPager viewpage;
     private LinearLayout childLinear;
     private XListView xlistview;
@@ -59,6 +63,8 @@ public class FragmentHomePersenter extends AppDelegate implements View.OnClickLi
     private RelativeLayout layoutTop;
     private RelativeLayout layoutTopSeach;
     private HorseView horseview;
+    private LinearLayout layoutPostion;
+    private JiuBean jiuBean;
 
     @Override
     protected int getLayoutId() {
@@ -78,7 +84,29 @@ public class FragmentHomePersenter extends AppDelegate implements View.OnClickLi
         setEvent();
 
         //网络请求
+        if (!NetworkUtils.isConnected(mContext)) {
+            notNetHtpp();
+            return;
+        }
         doHttp();
+    }
+
+    private void notNetHtpp() {
+        //查詢
+        HistoryEntity bannerHistory = SqlUtil.getInstens().queryByType(BANNER_REQUEST + "");
+        setBannerAdapter(bannerHistory.getHistory());
+
+        HistoryEntity jiuHistory = SqlUtil.getInstens().queryByType(JIU_REQUEST + "");
+        setViewPageAdapter(jiuHistory.getHistory());
+
+        HistoryEntity shopHistory = SqlUtil.getInstens().queryByType(SHOP_REQUEST + "");
+        setShopAdapter(shopHistory.getHistory());
+    }
+
+    public void setAnimation(View view, int s) {
+        ObjectAnimator animator = ObjectAnimator.ofFloat(view, "alpha", 1f, 0.7f, 1f);
+        animator.setDuration(s);
+        animator.start();
     }
 
     private void setEvent() {
@@ -111,12 +139,19 @@ public class FragmentHomePersenter extends AppDelegate implements View.OnClickLi
         xlistview.setXListViewListener(new XListView.IXListViewListener() {
             @Override
             public void onRefresh() {
-            /*    doHttp();*/
+                //网络请求
+                if (!NetworkUtils.isConnected(mContext)) {
+                    notNetHtpp();
+                    return;
+                }
+                doHttp();
+                xlistview.stopRefresh();
             }
 
             @Override
             public void onLoadMore() {
-               /* doHttp();*/
+                /* doHttp();*/
+                xlistview.stopLoadMore();
             }
         });
         //初始化适配器
@@ -139,14 +174,56 @@ public class FragmentHomePersenter extends AppDelegate implements View.OnClickLi
             public void onScroll(AbsListView view, int firstVisibleItem, int visibleItemCount, int totalItemCount) {
                 layoutTop.setBackgroundColor(Color.parseColor("#d43c3c"));
                 if (firstVisibleItem >= 1) {
+                    setAnimation(layoutTop, 3000);
                     layoutTop.setVisibility(View.VISIBLE);
+                    setAnimation(layoutTop, 3000);
                     layoutTopSeach.setVisibility(View.GONE);
+
                 } else {
+                    setAnimation(layoutTop, 3000);
                     layoutTop.setVisibility(View.GONE);
+                    setAnimation(layoutTop, 3000);
                     layoutTopSeach.setVisibility(View.VISIBLE);
                 }
             }
         });
+        setPoiont(0);
+        viewpage.addOnPageChangeListener(new ViewPager.OnPageChangeListener() {
+            @Override
+            public void onPageScrolled(int i, float v, int i1) {
+
+            }
+
+            @Override
+            public void onPageSelected(int i) {
+                setPoiont(i);
+            }
+
+            @Override
+            public void onPageScrollStateChanged(int i) {
+
+            }
+        });
+
+    }
+
+
+    public void setPoiont(int postion) {
+        childLinear.removeAllViews();
+        for (int i = 0; i < 3; i++) {
+            ImageView imageView = new ImageView(mContext);
+            if (postion == i) {
+                imageView.setImageResource(R.drawable.solid_red);
+            } else {
+                imageView.setImageResource(R.drawable.solid);
+            }
+            childLinear.addView(imageView);
+            LinearLayout.LayoutParams layoutParams = (LinearLayout.LayoutParams) imageView.getLayoutParams();
+            layoutParams.height = 10;
+            layoutParams.width = 10;
+            layoutParams.setMargins(5, 0, 5, 0);
+            imageView.setLayoutParams(layoutParams);
+        }
     }
 
     @Override
@@ -161,29 +238,38 @@ public class FragmentHomePersenter extends AppDelegate implements View.OnClickLi
         switch (type) {
             case BANNER_REQUEST:
                 setBannerAdapter(data);
+                SqlUtil.getInstens().insert(BANNER_REQUEST + "", data);
                 break;
             case JIU_REQUEST:
                 setViewPageAdapter(data);
+                SqlUtil.getInstens().insert(JIU_REQUEST + "", data);
                 break;
             case SHOP_REQUEST:
-                if (data.contains(">")){
-                    getString(Http.SHOP_URL, SHOP_REQUEST,null);
-                    return;
-                }
-                if (data != null){
-                    Gson gson = new Gson();
-                    ShopBean shopBean = gson.fromJson(data, ShopBean.class);
-                    List<ShopBean.DataBean> data1 = shopBean.getData();
-                    data1.remove(0);
-                    listAdapter.setShopList(data1);
-                }
+
+                setShopAdapter(data);
+                SqlUtil.getInstens().insert(SHOP_REQUEST + "", data);
                 break;
+        }
+    }
+
+    private void setShopAdapter(String data) {
+        if (data.contains(">")) {
+            getString(Http.SHOP_URL, SHOP_REQUEST, null);
+            return;
+        }
+        if (data != null) {
+            Gson gson = new Gson();
+            ShopBean shopBean = gson.fromJson(data, ShopBean.class);
+            List<ShopBean.DataBean> data1 = shopBean.getData();
+            data1.remove(0);
+            listAdapter.setShopList(data1);
         }
     }
 
 
     /**
      * 设置page九宮格
+     *
      * @param data
      */
     private void setViewPageAdapter(String data) {
@@ -195,15 +281,17 @@ public class FragmentHomePersenter extends AppDelegate implements View.OnClickLi
         onePage.clear();
         //实例化数据
         Gson gson = new Gson();
-        JiuBean jiuBean = gson.fromJson(data, JiuBean.class);
+        jiuBean = gson.fromJson(data, JiuBean.class);
         for (int i = 0; i < jiuBean.getData().size(); i++) {
             if (i < 8) {
                 towPage.add(jiuBean.getData().get(i));
-            } else if (i >= 8  && i < 16) {
+            } else if (i >= 8 && i < 16) {
                 onePage.add(jiuBean.getData().get(i));
+            } else if (i >= 16 && i < 23) {
+                threePage.add(jiuBean.getData().get(i));
             }
         }
-        if(jiuBean != null){
+        if (jiuBean != null) {
             //设置跑马灯的数据
             List<String> titles = new ArrayList<>();
             List<String> images = new ArrayList<>();
@@ -213,7 +301,7 @@ public class FragmentHomePersenter extends AppDelegate implements View.OnClickLi
             }
             horseview.setData(titles, images);
         }
-        JiuPageAdapter jiuPageAdapter = new JiuPageAdapter(mContext, onePage, towPage, 2);
+        JiuPageAdapter jiuPageAdapter = new JiuPageAdapter(mContext, onePage, towPage,threePage, 3);
         viewpage.setAdapter(jiuPageAdapter);
     }
 
@@ -260,14 +348,14 @@ public class FragmentHomePersenter extends AppDelegate implements View.OnClickLi
         }
     }
 
-    public void doHttp(){
+    public void doHttp() {
         //设定banner图进行网络请求
-        getString(Http.BANNER_URL, BANNER_REQUEST,null);
+        getString(Http.BANNER_URL, BANNER_REQUEST, null);
 
         //设定9宫格的网络请求
-        getString(Http.JIU_URL, JIU_REQUEST,null);
+        getString(Http.JIU_URL, JIU_REQUEST, null);
 
         //设定列表进行网络请求
-        getString(Http.SHOP_URL, SHOP_REQUEST,null);
+        getString(Http.SHOP_URL, SHOP_REQUEST, null);
     }
 }

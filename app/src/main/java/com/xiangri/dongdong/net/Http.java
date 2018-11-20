@@ -38,4 +38,6 @@ public class Http {
 
     //修改昵称
     public static final String UPDATA_NICKNAME = "/user/updateNickName";
+
+    public static final String GET_USER_INFO = "/user/getUserInfo";
 }

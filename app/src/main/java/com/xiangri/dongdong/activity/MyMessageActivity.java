@@ -2,16 +2,19 @@ package com.xiangri.dongdong.activity;
 
 import android.content.Intent;
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
 import android.provider.MediaStore;
 import android.support.annotation.Nullable;
 import android.util.Log;
+import android.widget.Toast;
 
+import com.google.gson.Gson;
+import com.xiangri.dongdong.entity.UserBean;
 import com.xiangri.dongdong.mvp.persenter.BaseActivity;
 import com.xiangri.dongdong.net.BaseObserver;
+import com.xiangri.dongdong.net.Http;
 import com.xiangri.dongdong.net.RetrofitHelper;
 import com.xiangri.dongdong.perstener.MyMessageActivityPerstener;
 import com.xiangri.dongdong.utils.SpUtil;
@@ -20,6 +23,8 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 
 import okhttp3.ResponseBody;
 
@@ -37,11 +42,17 @@ public class MyMessageActivity extends BaseActivity<MyMessageActivityPerstener> 
     @Override
     protected void onResume() {
         super.onResume();
-           Bitmap bitmap = BitmapFactory.decodeFile("/sdcard/myHead/head.jpg");
+           /*Bitmap bitmap = BitmapFactory.decodeFile("/sdcard/myHead/head.jpg");
             if (bitmap != null) {
                 Uri uri = Uri.parse(MediaStore.Images.Media.insertImage(getContentResolver(), bitmap, null, null));
                 delegate.setSimplDrawView(uri);
-            }
+            }*/
+        Boolean login_flag = (Boolean) SpUtil.getInserter(this).getSpData("login_flag", false);
+        if (login_flag) {
+            String icon = (String) SpUtil.getInserter(this).getSpData("icon", "");
+            String pic = icon.replace("https:","http:");
+            delegate.setSimplDrawView(pic);
+        }
     }
 
     @Override
@@ -65,14 +76,11 @@ public class MyMessageActivity extends BaseActivity<MyMessageActivityPerstener> 
                         return;
                     }
                     Bitmap headBit = extras.getParcelable("data");
-                    Uri uri = Uri.parse(MediaStore.Images.Media.insertImage(getContentResolver(), headBit, null, null));
-                    delegate.setSimplDrawView(uri);
                     if (headBit != null) {
                         /**
                          * 上传服务器代码
                          */
                         setPicToView(headBit);
-                        Log.d("Iiii",fileName);
                         File file = new File(fileName);
                         upLoad(file);/*上传到服务器*/
                     }
@@ -92,12 +100,14 @@ public class MyMessageActivity extends BaseActivity<MyMessageActivityPerstener> 
         }
 
         String uid = (String) SpUtil.getInserter(this).getSpData("uid", "");
-        Log.d("uid",uid);
         BaseObserver<ResponseBody> ob = new BaseObserver<ResponseBody>() {
             @Override
             public void onNext(ResponseBody responseBody) {
                 try {
-                    Log.d("TagAAAAA", responseBody.string());
+                    UserBean userBean = new Gson().fromJson(responseBody.string(), UserBean.class);
+                    if ("0".equals(userBean.getCode())){
+                        doGetPic();
+                    }
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
@@ -105,10 +115,54 @@ public class MyMessageActivity extends BaseActivity<MyMessageActivityPerstener> 
 
             @Override
             public void onError(Throwable e) {
-                Log.d("TagAAAAA", e.getMessage());
+                toase("上传失败");
             }
         };
         RetrofitHelper.getInstens().upLoad(file, uid, ob);
+    }
+
+    private void doGetPic() {
+        String uid = (String) SpUtil.getInserter(this).getSpData("uid", "");
+        Map<String,String> map = new HashMap<>();
+        map.put("uid",uid);
+        RetrofitHelper.getInstens().doGet(Http.GET_USER_INFO, map, new BaseObserver<ResponseBody>() {
+
+            @Override
+            public void onNext(ResponseBody responseBody) {
+                try {
+                    String string = responseBody.string();
+                    UserBean userBean = new Gson().fromJson(string, UserBean.class);
+                    if ("0".equals(userBean.getCode())){
+                        SpUtil.getInserter(MyMessageActivity.this)
+                                .saveData("username",userBean.getData()
+                                        .getUsername())
+                                .putString("uid",userBean.getData().getUid()+"")
+                                .putString("password",userBean.getData()
+                                        .getPassword()).putBoolean("login_flag",true)
+                                .putString("token",userBean.getData().getToken())
+                                .putString("nickname",userBean.getData().getNickname()+"")
+                                .putString("icon",userBean.getData().getIcon()+"").commit();
+                        toase("上传成功");
+                        String s = userBean.getData().getIcon() + "";
+                        String replace = s.replace("https:", "http:");
+                        delegate.setSimplDrawView(replace);
+                        return;
+                    }
+                    toase("上传成功");
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+
+            @Override
+            public void onError(Throwable e) {
+                toase("上传失败");
+            }
+        });
+    }
+
+    public void toase(String msg){
+        Toast.makeText(this,msg,Toast.LENGTH_SHORT).show();
     }
 
     private void setPicToView(Bitmap mBitmap) {

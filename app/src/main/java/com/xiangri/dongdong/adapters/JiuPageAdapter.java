@@ -20,13 +20,15 @@ public class JiuPageAdapter extends PagerAdapter {
     private Context mContext;
     private List<JiuDataBean> onePage = new ArrayList<>();
     private List<JiuDataBean> towPage = new ArrayList<>();
+    private List<JiuDataBean> threePage = new ArrayList<>();
     private int pagenum = 0;
 
-    public JiuPageAdapter(Context mContext, List<JiuDataBean> onPage, List<JiuDataBean> towPage, int pagenum) {
+    public JiuPageAdapter(Context mContext, List<JiuDataBean> onePage, List<JiuDataBean> towPage, List<JiuDataBean> threePage, int pagenum) {
         this.mContext = mContext;
-        this.onePage = onPage;
+        this.onePage = onePage;
         this.towPage = towPage;
         this.pagenum = pagenum;
+        this.threePage = threePage;
     }
 
     @Override
@@ -54,6 +56,8 @@ public class JiuPageAdapter extends PagerAdapter {
             adapter.setList(onePage);
         } else if (position == 1) {
             adapter.setList(towPage);
+        } else if (position == 2) {
+            adapter.setList(threePage);
         }
         container.addView(inflate);
         return inflate;

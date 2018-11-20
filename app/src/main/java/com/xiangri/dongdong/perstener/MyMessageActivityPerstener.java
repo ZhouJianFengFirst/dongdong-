@@ -70,6 +70,7 @@ public class MyMessageActivityPerstener extends AppDelegate implements View.OnCl
             nickName.setText("未设置");
         } else {
             nickName.setText(nickname);
+            etUpdata.setHint(nickname);
         }
     }
 
@@ -170,7 +171,7 @@ public class MyMessageActivityPerstener extends AppDelegate implements View.OnCl
             Toast.makeText(mContext, "sd卡未挂载", Toast.LENGTH_SHORT).show();
             return;
         }
-
+        //获取sd卡的根目录
         rootSD = Environment.getExternalStorageDirectory();
 
         AlertDialog dialog = new AlertDialog.Builder(mContext)
@@ -209,7 +210,12 @@ public class MyMessageActivityPerstener extends AppDelegate implements View.OnCl
         return uri;
     }
 
-    public void setSimplDrawView(Uri simplDrawView) {
-        userSimpView.setImageURI(simplDrawView);
+    public void setSimplDrawView(String iocn) {
+        if (iocn == null || "null".equals(iocn)|| "".equals(iocn)){
+            userSimpView.setImageResource(R.drawable.login);
+        }else {
+            String replace = iocn.replace("https:", "http:");
+            userSimpView.setImageURI(replace);
+        }
     }
 }
